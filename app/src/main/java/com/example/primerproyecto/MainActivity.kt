@@ -3,17 +3,17 @@ package com.example.primerproyecto
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -74,28 +75,56 @@ fun PetApp() {
             )
         },
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Color(0xFFEEDCFF)) // Morado
+                    .fillMaxWidth()
+                    .height(80.dp),
+                contentAlignment = Alignment.Center
             ) {
-                val tabs = listOf(
-                    TabItem("Inicio", Icons.Default.Home),
-                    TabItem("Veterinarias", Icons.Default.Info),
-                    TabItem("Adopciones", Icons.Default.Favorite),
-                    TabItem("Más", Icons.Default.MoreVert)
-                )
-
-                tabs.forEachIndexed { index, tab ->
-                    NavigationBarItem(
-                        icon = { Icon(tab.icon, contentDescription = tab.title) },
-                        label = { Text(tab.title) },
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary
-                        )
+                NavigationBar(
+                    containerColor = Color.Transparent,
+                    tonalElevation = 0.dp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val tabs = listOf(
+                        TabItem("Tienda", iconVector = Icons.Default.ShoppingCart),
+                        TabItem("Inicio", iconVector = Icons.Default.Home),
+                        TabItem("Veterinarias", iconRes = R.drawable.clinica),
+                        TabItem("Más", iconVector = Icons.Default.MoreVert)
                     )
+
+                    tabs.forEachIndexed { index, tab ->
+                        NavigationBarItem(
+                            icon = {
+                                if (tab.iconVector != null) {
+                                    Icon(
+                                        imageVector = tab.iconVector,
+                                        contentDescription = tab.title,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                } else if (tab.iconRes != null) {
+                                    Image(
+                                        painter = painterResource(id = tab.iconRes),
+                                        contentDescription = tab.title,
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .padding(top = 4.dp)
+                                    )
+                                }
+                            },
+                            label = { Text(tab.title) },
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color.White,
+                                selectedTextColor = Color.White,
+                                indicatorColor = Color.Transparent
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -107,9 +136,9 @@ fun PetApp() {
                 .background(MaterialTheme.colorScheme.background)
         ) {
             when (selectedTab) {
-                0 -> HomeScreen()
-                1 -> VeterinariasScreen()
-                2 -> AdopcionesScreen()
+                0 -> TiendaScreen()
+                1 -> HomeScreen()
+                2 -> VeterinariasScreen()
                 3 -> MasOpcionesScreen()
             }
         }
@@ -145,13 +174,13 @@ fun VeterinariasScreen() {
 }
 
 @Composable
-fun AdopcionesScreen() {
+fun TiendaScreen() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Mascotas en adopción",
+            text = "Tienda de mascotas",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
@@ -261,16 +290,6 @@ fun FeaturesCard() {
 }
 
 @Composable
-fun PetCard(pet: Pet) {
-    // Puedes implementar esta tarjeta para mostrar una mascota individual si lo necesitas
-}
-
-@Composable
-fun TipCard(tip: Tip) {
-    // Puedes implementar esta tarjeta para mostrar un tip individual si lo necesitas
-}
-
-@Composable
 fun StatItem(number: String, label: String, emoji: String) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -314,7 +333,12 @@ fun FeatureItem(emoji: String, text: String) {
     }
 }
 
-data class TabItem(val title: String, val icon: ImageVector)
+data class TabItem(
+    val title: String,
+    val iconVector: ImageVector? = null,
+    val iconRes: Int? = null
+)
+
 data class Pet(val name: String, val type: String, val breed: String, val age: String, val emoji: String)
 data class Tip(val title: String, val description: String, val emoji: String)
 
