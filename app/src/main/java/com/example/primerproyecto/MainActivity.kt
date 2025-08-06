@@ -159,19 +159,6 @@ fun HomeScreen() {
     }
 }
 
-@Composable
-fun VeterinariasScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Veterinarias cercanas",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
 
 @Composable
 fun TiendaScreen() {
