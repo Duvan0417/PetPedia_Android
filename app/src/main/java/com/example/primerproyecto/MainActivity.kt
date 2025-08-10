@@ -45,11 +45,29 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PetAppTheme {
-                PetApp()
+                var isLoggedIn by remember { mutableStateOf(false) }
+                var showRegister by remember { mutableStateOf(false) }
+
+                if (!isLoggedIn) {
+                    if (showRegister) {
+                        RegisterScreen(
+                            onRegister = { isLoggedIn = true },
+                            onGoToLogin = { showRegister = false }
+                        )
+                    } else {
+                        LoginScreen(
+                            onLogin = { isLoggedIn = true },
+                            onGoToRegister = { showRegister = true }
+                        )
+                    }
+                } else {
+                    PetApp()
+                }
             }
         }
     }
 }
+
 
 data class TabItem(
     val title: String,
