@@ -62,6 +62,10 @@ dependencies {
 
     implementation(libs.androidx.material3)
 
+    // Iconos adicionales (FilterList, etc.)
+    implementation("androidx.compose.material:material-icons-extended")
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
