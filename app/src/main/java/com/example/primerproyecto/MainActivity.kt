@@ -105,8 +105,8 @@ fun PetApp() {
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 when (selectedTab) {
-                    1 -> HomeScreen(searchQuery = "")
-                    0 -> TiendaScreen(
+                    0 -> HomeScreen(searchQuery = "")
+                    1 -> TiendaScreen(
                         carrito = carrito,
                         onAgregar = { producto ->
                             val existente = carrito.find { it.producto == producto }
@@ -144,8 +144,8 @@ fun PetApp() {
                     tonalElevation = 0.dp
                 ) {
                     val tabs = listOf(
-                        TabItem("Tienda", Icons.Default.ShoppingCart),
                         TabItem("Inicio", Icons.Default.Home),
+                        TabItem("Tienda", Icons.Default.ShoppingCart),
                         TabItem("Veterinarias", Icons.Default.LocalHospital),
                         TabItem("Más", Icons.Default.MoreVert)
                     )
@@ -262,7 +262,46 @@ fun CustomTopBar(
 // ======================= MÁS OPCIONES SCREEN =======================
 @Composable
 fun MasOpcionesScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Pantalla de más opciones", modifier = Modifier.padding(16.dp))
+    val opciones = listOf(
+        "Perfil" to Icons.Default.Person,
+        "Entrenadores" to Icons.Default.FitnessCenter,
+        "Refugios" to Icons.Default.Pets,
+        "Configuración" to Icons.Default.Settings,
+        "Pedidos" to Icons.Default.Receipt,
+        "Foro" to Icons.Default.Forum,
+        "Solicitudes" to Icons.Default.MarkEmailUnread,
+        "Gestionar Servicios" to Icons.Default.Build
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Top
+    ) {
+        opciones.forEach { (titulo, icono) ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(4.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                onClick = { /* Navegar a su pantalla */ }
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    Icon(icono, contentDescription = titulo, tint = Color(0xFF6C28D0))
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(titulo, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+        }
     }
 }
+
+
