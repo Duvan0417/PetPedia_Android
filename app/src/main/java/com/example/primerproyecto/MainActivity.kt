@@ -70,17 +70,20 @@ data class TabItem(
     val iconVector: ImageVector
 )
 
+// MainActivity.kt (o en el archivo donde tengas tus modelos compartidos)
 data class Producto(
     val nombre: String,
     val descripcion: String,
     val precio: Double,
-    val imagenRes: Int
+    val imagenRes: Int,
+    val categoria: String
 )
 
 data class CarritoItem(
     val producto: Producto,
     var cantidad: Int
 )
+
 
 // ======================= MAIN APP =======================
 @Composable
