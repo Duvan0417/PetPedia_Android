@@ -363,7 +363,7 @@ fun VeterinariaCard(vet: Veterinaria, onPedirCita: () -> Unit) {
                             Icon(Icons.Default.Share, contentDescription = "Compartir")
                         }
                         IconButton(onClick = { /* favorito */ }) {
-                            Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorito")
+                            Icon(Icons.Default.Pets, contentDescription = "Favorito")
                         }
                     }
                 }
