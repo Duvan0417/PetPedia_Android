@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
-// ======================= THEME =======================
+// ======================= THEME ==================
 @Composable
 fun PetAppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
