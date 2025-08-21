@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
-// ======================= THEME ==================
+// ======================= THEME =======================
 @Composable
 fun PetAppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
@@ -70,7 +70,6 @@ data class TabItem(
     val iconVector: ImageVector
 )
 
-// MainActivity.kt (o en el archivo donde tengas tus modelos compartidos)
 data class Producto(
     val nombre: String,
     val descripcion: String,
@@ -84,7 +83,6 @@ data class CarritoItem(
     var cantidad: Int
 )
 
-
 // ======================= MAIN APP =======================
 @Composable
 fun PetApp() {
@@ -92,14 +90,14 @@ fun PetApp() {
     val carrito = remember { mutableStateListOf<CarritoItem>() }
     var mostrarCarrito by remember { mutableStateOf(false) }
 
+    // Estados para navegación en Más Opciones
+    var mostrarPerfil by remember { mutableStateOf(false) }
+    var mostrarEntrenadores by remember { mutableStateOf(false) }
+    var mostrarAdopciones by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = {
-                CustomTopBar(
-                    title = "🐾 PetPedia",
-                    onMoreClick = { /* TODO */ }
-                )
-            }
+            topBar = { }, // Sin barra superior
         ) { innerPadding ->
             Box(
                 modifier = Modifier
@@ -107,22 +105,31 @@ fun PetApp() {
                     .padding(innerPadding)
                     .background(MaterialTheme.colorScheme.background)
             ) {
-                when (selectedTab) {
-                    0 -> HomeScreen(searchQuery = "")
-                    1 -> TiendaScreen(
-                        carrito = carrito,
-                        onAgregar = { producto ->
-                            val existente = carrito.find { it.producto == producto }
-                            if (existente != null) {
-                                carrito[carrito.indexOf(existente)] =
-                                    existente.copy(cantidad = existente.cantidad + 1)
-                            } else {
-                                carrito.add(CarritoItem(producto, 1))
+                when {
+                    mostrarPerfil -> PerfilScreen(onBack = { mostrarPerfil = false })
+                    mostrarEntrenadores -> EntrenadoresScreen()
+                    mostrarAdopciones -> AdopcionesScreen()
+                    else -> when (selectedTab) {
+                        0 -> HomeScreen(searchQuery = "")
+                        1 -> TiendaScreen(
+                            carrito = carrito,
+                            onAgregar = { producto ->
+                                val existente = carrito.find { it.producto == producto }
+                                if (existente != null) {
+                                    carrito[carrito.indexOf(existente)] =
+                                        existente.copy(cantidad = existente.cantidad + 1)
+                                } else {
+                                    carrito.add(CarritoItem(producto, 1))
+                                }
                             }
-                        }
-                    )
-                    2 -> VeterinariasScreen()
-                    3 -> MasOpcionesScreen()
+                        )
+                        2 -> VeterinariasScreen()
+                        3 -> MasOpcionesScreen(
+                            onNavigateToPerfil = { mostrarPerfil = true },
+                            onNavigateToEntrenadores = { mostrarEntrenadores = true },
+                            onNavigateToAdopciones = { mostrarAdopciones = true }
+                        )
+                    }
                 }
             }
         }
@@ -164,7 +171,13 @@ fun PetApp() {
                             },
                             label = { Text(tab.title) },
                             selected = selectedTab == index,
-                            onClick = { selectedTab = index },
+                            onClick = {
+                                selectedTab = index
+                                // Resetear subpantallas al cambiar tab
+                                mostrarPerfil = false
+                                mostrarEntrenadores = false
+                                mostrarAdopciones = false
+                            },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = Color.White,
                                 selectedTextColor = Color.White,
@@ -231,80 +244,3 @@ fun PetApp() {
         }
     }
 }
-
-// ======================= TOP BAR =======================
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CustomTopBar(
-    title: String,
-    onMoreClick: () -> Unit
-) {
-    TopAppBar(
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = title,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-        },
-        actions = {
-            IconButton(onClick = onMoreClick) {
-                Icon(Icons.Filled.MoreVert, contentDescription = "Más opciones", tint = Color.White)
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color(0xFF6C28D0),
-            titleContentColor = Color.White
-        )
-    )
-}
-
-// ======================= MÁS OPCIONES SCREEN =======================
-@Composable
-fun MasOpcionesScreen() {
-    val opciones = listOf(
-        "Perfil" to Icons.Default.Person,
-        "Entrenadores" to Icons.Default.FitnessCenter,
-        "Refugios" to Icons.Default.Pets,
-        "Configuración" to Icons.Default.Settings,
-        "Pedidos" to Icons.Default.Receipt,
-        "Foro" to Icons.Default.Forum,
-        "Solicitudes" to Icons.Default.MarkEmailUnread,
-        "Gestionar Servicios" to Icons.Default.Build
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top
-    ) {
-        opciones.forEach { (titulo, icono) ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp),
-                shape = RoundedCornerShape(8.dp),
-                elevation = CardDefaults.cardElevation(4.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                onClick = { /* Navegar a su pantalla */ }
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(16.dp)
-                ) {
-                    Icon(icono, contentDescription = titulo, tint = Color(0xFF6C28D0))
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(titulo, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-                }
-            }
-        }
-    }
-}
-
-
