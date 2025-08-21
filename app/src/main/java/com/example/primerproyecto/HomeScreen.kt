@@ -14,19 +14,37 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.primerproyecto.R
+
+// Paleta de colores mejorada
+object PetPediaColors {
+    val Primary = Color(0xFF6366F1)
+    val PrimaryDark = Color(0xFF4F46E5)
+    val Secondary = Color(0xFF8B5CF6)
+    val Accent = Color(0xFF06B6D4)
+    val Background = Color(0xFFF8FAFC)
+    val Surface = Color(0xFFFFFFFF)
+    val SurfaceVariant = Color(0xFFF1F5F9)
+    val OnSurface = Color(0xFF1E293B)
+    val OnSurfaceVariant = Color(0xFF64748B)
+    val Success = Color(0xFF10B981)
+    val Warning = Color(0xFFF59E0B)
+}
 
 @Composable
 fun HomeScreen() {
@@ -36,77 +54,145 @@ fun HomeScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(PetPediaColors.Background)
             .verticalScroll(scrollState)
     ) {
-        // 🔹 Barra de búsqueda en la parte superior
-        OutlinedTextField(
-            value = searchText,
-            onValueChange = { searchText = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            placeholder = { Text("Buscar productos, servicios...") },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Buscar"
-                )
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(16.dp)
-        )
+        // Header con barra de búsqueda
+        HeaderSection(searchText = searchText) { searchText = it }
 
-        // 🔹 Carrusel superior
-        ImageCarousel(
-            images = listOf(
-                R.drawable.dog_tips,
-                R.drawable.dog_tips2,
-                R.drawable.adopcion3
-            )
-        )
+        // Carrusel principal
+        MainCarousel()
 
-        // 🔹 Botones de acción rápida
-        QuickActions()
+        // Botones de acción rápida
+        QuickActionsSection()
 
-        // 🔹 Zona bienvenida
+        // Sección de bienvenida
         WelcomeSection()
 
-        // 🔹 Categorías rápidas
-        QuickCategories()
+        // Categorías rápidas
+        QuickCategoriesSection()
 
-        // 🔹 Servicios principales
-        ServiceSection(
-            items = listOf(
-                ServiceItem("Veterinaria", R.drawable.veterinary, "Atención 24/7 para tu mascota."),
-                ServiceItem("Entrenador", R.drawable.pet_hotel2, "Entrenamiento positivo y profesional."),
-                ServiceItem("Adopciones", R.drawable.adopcion, "Encuentra tu mejor amigo."),
-                ServiceItem("Productos", R.drawable.camag, "Alimentos, juguetes y más.")
-            )
-        )
+        // Servicios principales
+        ServicesSection()
 
-        // 🔹 Recomendaciones
+        // Recomendaciones personalizadas
         RecommendationsSection()
 
-        // 🔹 Promociones
+        // Promociones especiales
         PromotionsSection()
 
-        // 🔹 Tips o Blog
+        // Tips y consejos
         TipsSection()
 
-        // 🔹 Testimonios
-        TestimonialSection()
+        // Testimonios de usuarios
+        TestimonialsSection()
 
-        // 🔹 Noticias o destacados
-        HighlightSection()
+        // Noticias y destacados
+        NewsSection()
+
+        // Espaciado final
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
-
-// ---------------- CARRUSEL ----------------
+// ===================== HEADER SECTION =====================
 @Composable
-fun ImageCarousel(images: List<Int>) {
+private fun HeaderSection(
+    searchText: String,
+    onSearchTextChange: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        PetPediaColors.Primary,
+                        PetPediaColors.PrimaryDark
+                    )
+                )
+            )
+            .padding(16.dp)
+    ) {
+        // Saludo y logo
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "¡Hola! 👋",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = "Bienvenido a PetPedia",
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            // Icono de perfil o notificaciones
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        Color.White.copy(alpha = 0.2f),
+                        CircleShape
+                    )
+                    .clickable { },
+                contentAlignment = Alignment.Center
+            ) {
+                Text("🐕", fontSize = 20.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Barra de búsqueda mejorada
+        OutlinedTextField(
+            value = searchText,
+            onValueChange = onSearchTextChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(4.dp, RoundedCornerShape(28.dp)),
+            placeholder = {
+                Text(
+                    "Buscar servicios, productos...",
+                    color = PetPediaColors.OnSurfaceVariant
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Buscar",
+                    tint = PetPediaColors.Primary
+                )
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(28.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent
+            )
+        )
+    }
+}
+
+// ===================== MAIN CAROUSEL =====================
+@Composable
+private fun MainCarousel() {
     var currentIndex by remember { mutableStateOf(0) }
+    val images = listOf(
+        R.drawable.dog_tips,
+        R.drawable.dog_tips2,
+        R.drawable.adopcion3
+    )
 
     LaunchedEffect(Unit) {
         val handler = Handler(Looper.getMainLooper())
@@ -120,12 +206,13 @@ fun ImageCarousel(images: List<Int>) {
     }
 
     Card(
-        shape = RoundedCornerShape(20.dp), // 🔹 bordes redondeados
-        elevation = CardDefaults.cardElevation(8.dp), // 🔹 sombra/elevación
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp) // 🔹 no ocupa todo el ancho
-            .height(200.dp)
+            .padding(16.dp)
+            .height(220.dp)
+            .shadow(12.dp, RoundedCornerShape(24.dp)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Box {
             Image(
@@ -135,130 +222,278 @@ fun ImageCarousel(images: List<Int>) {
                 contentScale = ContentScale.Crop
             )
 
-            // 🔹 Degradado oscuro en la parte baja
+            // Degradado mejorado
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            listOf(Color.Transparent, Color(0xAA000000))
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.7f)
+                            ),
+                            startY = 100f
                         )
                     )
             )
 
-            Text(
-                text = "Cuidamos lo que más amas ❤️",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
+            // Contenido superpuesto
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(12.dp)
-            )
-        }
-    }
-}
-
-
-
-// ---------------- BOTONES DE ACCIÓN RÁPIDA ----------------
-@Composable
-fun QuickActions() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        Button(
-            onClick = { },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
-        ) {
-            Text("Agendar cita", color = Color.White)
-        }
-        Button(
-            onClick = { },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A148C))
-        ) {
-            Text("Explorar tienda", color = Color.White)
-        }
-    }
-}
-
-
-// ---------------- BIENVENIDA ----------------
-@Composable
-fun WelcomeSection() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 10.dp)
-    ) {
-        Text(
-            text = "Bienvenido a PetCare",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF4A148C)
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = "La plataforma integral para el cuidado y felicidad de tus mascotas.",
-            fontSize = 16.sp,
-            color = Color.Gray
-        )
-    }
-}
-
-// ---------------- CATEGORÍAS RÁPIDAS ----------------
-@Composable
-fun QuickCategories() {
-    val categories = listOf(
-        "Citas" to R.drawable.veterinary,
-        "Tienda" to R.drawable.pet_shop,
-        "Rescates" to R.drawable.adopcion3,
-        "Entreno" to R.drawable.pet_hotel2
-    )
-
-    LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        items(categories) { (name, icon) ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(
-                    painter = painterResource(id = icon),
-                    contentDescription = name,
-                    modifier = Modifier
-                        .size(70.dp) // mismo tamaño del círculo
-                        .clip(CircleShape) // recorta la imagen circular
-                        .clickable { },
-                    contentScale = ContentScale.Crop // rellena todo el círculo
+                    .padding(20.dp)
+            ) {
+                Text(
+                    text = "Cuidamos lo que más amas ❤️",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(name, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    text = "Servicios veterinarios de confianza",
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
+            // Indicadores de carrusel
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                repeat(images.size) { index ->
+                    Box(
+                        modifier = Modifier
+                            .size(if (index == currentIndex) 12.dp else 8.dp)
+                            .background(
+                                if (index == currentIndex) Color.White else Color.White.copy(alpha = 0.5f),
+                                CircleShape
+                            )
+                    )
+                }
             }
         }
     }
 }
 
+// ===================== QUICK ACTIONS =====================
+@Composable
+private fun QuickActionsSection() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Button(
+            onClick = { },
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp)
+                .shadow(8.dp, RoundedCornerShape(16.dp)),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = PetPediaColors.Primary
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(
+                "📅 Agendar Cita",
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
 
-// ---------------- SERVICIOS ----------------
-data class ServiceItem(val title: String, val icon: Int, val description: String)
+        OutlinedButton(
+            onClick = { },
+            modifier = Modifier
+                .weight(1f)
+                .height(56.dp),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(
+                2.dp,
+                PetPediaColors.Primary
+            )
+        ) {
+            Text(
+                "🛍️ Explorar Tienda",
+                fontWeight = FontWeight.SemiBold,
+                color = PetPediaColors.Primary
+            )
+        }
+    }
+}
+
+// ===================== WELCOME SECTION =====================
+@Composable
+private fun WelcomeSection() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = PetPediaColors.Surface
+        ),
+        elevation = CardDefaults.cardElevation(6.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Tu mascota merece lo mejor",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PetPediaColors.OnSurface
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Plataforma integral para el cuidado y felicidad de tus compañeros peludos.",
+                    fontSize = 14.sp,
+                    color = PetPediaColors.OnSurfaceVariant,
+                    lineHeight = 20.sp
+                )
+            }
+
+            Text("🐾", fontSize = 40.sp)
+        }
+    }
+}
+
+// ===================== QUICK CATEGORIES =====================
+@Composable
+private fun QuickCategoriesSection() {
+    val categories = listOf(
+        Triple("Veterinaria", "🏥", PetPediaColors.Success),
+        Triple("Tienda", "🛍️", PetPediaColors.Primary),
+        Triple("Adopciones", "🏠", PetPediaColors.Secondary),
+        Triple("Entrenamiento", "🎾", PetPediaColors.Accent)
+    )
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(
+            text = "Servicios principales",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = PetPediaColors.OnSurface,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
+            items(categories) { (name, emoji, color) ->
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable { }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .shadow(8.dp, CircleShape)
+                            .background(
+                                Brush.radialGradient(
+                                    colors = listOf(
+                                        color.copy(alpha = 0.8f),
+                                        color
+                                    ),
+                                    radius = 120f
+                                ),
+                                CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Efecto de brillo interno
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .background(
+                                    Brush.radialGradient(
+                                        colors = listOf(
+                                            Color.White.copy(alpha = 0.3f),
+                                            Color.Transparent
+                                        ),
+                                        radius = 60f
+                                    ),
+                                    CircleShape
+                                )
+                        )
+                        Text(
+                            emoji,
+                            fontSize = 28.sp,
+                            modifier = Modifier.offset(y = (-2).dp) // Ligero efecto de elevación
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = name,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = PetPediaColors.OnSurface,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ===================== SERVICES SECTION =====================
+data class ServiceItem(
+    val title: String,
+    val icon: Int,
+    val description: String,
+    val color: Color
+)
 
 @Composable
-fun ServiceSection(items: List<ServiceItem>) {
+private fun ServicesSection() {
+    val services = listOf(
+        ServiceItem(
+            "Veterinaria 24/7",
+            R.drawable.veterinary,
+            "Atención médica profesional las 24 horas del día.",
+            PetPediaColors.Success
+        ),
+        ServiceItem(
+            "Entrenamiento",
+            R.drawable.pet_hotel2,
+            "Entrenadores certificados con métodos positivos.",
+            PetPediaColors.Primary
+        ),
+        ServiceItem(
+            "Adopciones",
+            R.drawable.adopcion,
+            "Encuentra tu compañero perfecto y cambia una vida.",
+            PetPediaColors.Secondary
+        ),
+        ServiceItem(
+            "Productos Premium",
+            R.drawable.collarp,
+            "Alimentos, juguetes y accesorios de alta calidad.",
+            PetPediaColors.Accent
+        )
+    )
+
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
             text = "Nuestros servicios",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
+            color = PetPediaColors.OnSurface,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            items(items) { service ->
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
+            items(services) { service ->
                 ServiceCard(service)
             }
         }
@@ -266,205 +501,248 @@ fun ServiceSection(items: List<ServiceItem>) {
 }
 
 @Composable
-fun ServiceCard(service: ServiceItem) {
+private fun ServiceCard(service: ServiceItem) {
     Card(
         modifier = Modifier
-            .width(220.dp)
-            .height(320.dp),
-        shape = RoundedCornerShape(18.dp),
-        elevation = CardDefaults.cardElevation(10.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F7FF))
+            .width(260.dp)
+            .height(340.dp)
+            .shadow(12.dp, RoundedCornerShape(24.dp))
+            .clickable { },
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = PetPediaColors.Surface
+        )
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = service.icon),
-                contentDescription = service.title,
+            // Imagen con overlay colorido
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(160.dp), // Imagen grande arriba
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = service.title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF4A148C)
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = service.description,
-                fontSize = 14.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Button(
-                onClick = { },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
+                    .height(180.dp)
             ) {
-                Text("Ver más", color = Color.White)
-            }
-        }
-    }
-}
+                Image(
+                    painter = painterResource(id = service.icon),
+                    contentDescription = service.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
 
-// ---------------- RECOMENDACIONES ----------------
-@Composable
-fun RecommendationsSection() {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "Recomendados para ti",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
-        val productos = listOf(
-            R.drawable.camap,
-            R.drawable.pet_shop,
-            R.drawable.adopcion
-        )
-
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            items(productos.size) { index ->
-                Card(
+                Box(
                     modifier = Modifier
-                        .width(220.dp)
-                        .height(320.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    elevation = CardDefaults.cardElevation(10.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F7FF)) // ✅ mismo color que servicios
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Imagen grande arriba (igual que en servicios)
-                        Image(
-                            painter = painterResource(id = productos[index]),
-                            contentDescription = "Producto $index",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(160.dp),
-                            contentScale = ContentScale.Crop
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        // Nombre del producto
-                        Text(
-                            "Producto ${index + 1}",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            color = Color(0xFF4A148C) // ✅ mismo morado de servicios
-                        )
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        // Precio
-                        Text(
-                            "Desde $20.000",
-                            color = Color.Gray,
-                            fontSize = 14.sp
-                        )
-
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        // Botón de acción
-                        Button(
-                            onClick = { },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2)), // ✅ igual que servicios
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                        ) {
-                            Text("Comprar", color = Color.White)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-
-// ---------------- PROMOCIONES ----------------
-@Composable
-fun PromotionsSection() {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "Promociones",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("🎉 20% de descuento en alimentos premium", fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(6.dp))
-                Text("Solo esta semana en la tienda PetCare.", color = Color.DarkGray)
-            }
-        }
-    }
-}
-
-// ---------------- TIPS ----------------
-@Composable
-fun TipsSection() {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "Tips para tu mascota",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            items(3) {
-                Card(
-                    modifier = Modifier
-                        .width(220.dp)
-                        .height(220.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White), // fondo blanco
-                    elevation = CardDefaults.cardElevation(6.dp)
-                ) {
-                    Column {
-                        // 🔹 Imagen que ocupa todo el ancho
-                        Image(
-                            painter = painterResource(id = R.drawable.dog_tips), // cámbialo por la imagen que quieras
-                            contentDescription = "Tip imagen",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp), // la mitad de la tarjeta
-                            contentScale = ContentScale.Crop
-                        )
-
-                        // 🔹 Texto debajo de la imagen
-                        Column(
-                            modifier = Modifier.padding(12.dp),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text("🐾 Tip ${it + 1}", fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                "Recuerda mantener al día sus vacunas y chequeos veterinarios.",
-                                fontSize = 13.sp,
-                                color = Color.DarkGray
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    service.color.copy(alpha = 0.3f)
+                                )
                             )
-                        }
+                        )
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = service.title,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PetPediaColors.OnSurface,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = service.description,
+                    fontSize = 14.sp,
+                    color = PetPediaColors.OnSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Button(
+                    onClick = { },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = service.color
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        "Ver más",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ===================== RECOMMENDATIONS =====================
+@Composable
+private fun RecommendationsSection() {
+    val products = listOf(
+        Triple("Collar Inteligente", "$45.000", R.drawable.collarp),
+        Triple("Kit de Aseo Premium", "$32.000", R.drawable.pet_shop),
+        Triple("Casa para Mascotas", "$120.000", R.drawable.adopcion)
+    )
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Recomendados para ti",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = PetPediaColors.OnSurface
+            )
+
+            TextButton(onClick = { }) {
+                Text(
+                    "Ver todos",
+                    color = PetPediaColors.Primary,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
+        ) {
+            items(products.size) { index ->
+                ProductCard(
+                    name = products[index].first,
+                    price = products[index].second,
+                    imageRes = products[index].third
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProductCard(name: String, price: String, imageRes: Int) {
+    Card(
+        modifier = Modifier
+            .width(200.dp)
+            .height(260.dp)
+            .shadow(8.dp, RoundedCornerShape(20.dp))
+            .clickable { },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = PetPediaColors.Surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+
+                // Etiqueta de descuento (opcional)
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .background(
+                            PetPediaColors.Warning,
+                            RoundedCornerShape(12.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        "-20%",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = name,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PetPediaColors.OnSurface,
+                    maxLines = 2
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(5) {
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = null,
+                            tint = PetPediaColors.Warning,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "4.8",
+                        fontSize = 12.sp,
+                        color = PetPediaColors.OnSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = price,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PetPediaColors.Primary
+                    )
+
+                    IconButton(
+                        onClick = { },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .background(
+                                PetPediaColors.Primary,
+                                CircleShape
+                            )
+                    ) {
+                        Text("🛒", fontSize = 16.sp)
                     }
                 }
             }
@@ -472,127 +750,357 @@ fun TipsSection() {
     }
 }
 
-// ---------------- TESTIMONIOS ----------------
+// ===================== PROMOTIONS =====================
+@Composable
+private fun PromotionsSection() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .shadow(8.dp, RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = PetPediaColors.Primary
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "🎉 Oferta Especial",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "20% de descuento en alimentos premium esta semana",
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = { },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        "Aprovechar oferta",
+                        color = PetPediaColors.Primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            Text("🎁", fontSize = 60.sp)
+        }
+    }
+}
+
+// ===================== TIPS SECTION =====================
+@Composable
+private fun TipsSection() {
+    val tips = listOf(
+        "Mantén las vacunas al día" to "Las vacunas son esenciales para prevenir enfermedades graves.",
+        "Ejercicio diario" to "El ejercicio regular mantiene a tu mascota saludable y feliz.",
+        "Alimentación balanceada" to "Una dieta equilibrada es clave para la longevidad de tu mascota."
+    )
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(
+            text = "Tips para tu mascota 💡",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = PetPediaColors.OnSurface,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
+            items(tips.size) { index ->
+                TipCard(
+                    title = tips[index].first,
+                    description = tips[index].second,
+                    index = index + 1
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TipCard(title: String, description: String, index: Int) {
+    Card(
+        modifier = Modifier
+            .width(240.dp)
+            .height(200.dp)
+            .shadow(6.dp, RoundedCornerShape(18.dp))
+            .clickable { },
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = PetPediaColors.Surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(
+                            PetPediaColors.Primary,
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "$index",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Tip #$index",
+                    color = PetPediaColors.Primary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = PetPediaColors.OnSurface
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = description,
+                fontSize = 13.sp,
+                color = PetPediaColors.OnSurfaceVariant,
+                lineHeight = 18.sp
+            )
+        }
+    }
+}
+
+// ===================== TESTIMONIALS =====================
 data class Testimonial(
     val name: String,
     val text: String,
-    val photo: Int
+    val rating: Float = 5f
 )
 
 @Composable
-fun TestimonialSection() {
+private fun TestimonialsSection() {
     val testimonials = listOf(
         Testimonial(
             "Andrea G.",
-            "Gracias a PetCare adopté a mi perrita Luna y encontré un veterinario increíble. ¡Recomendado 100%!",
-            R.drawable.logopet // 🔹 reemplaza con tus imágenes
+            "Gracias a PetPedia adopté a mi perrita Luna y encontré un veterinario increíble."
         ),
         Testimonial(
             "Carlos M.",
-            "La tienda de productos tiene todo lo que necesito, los envíos son rápidos y de calidad.",
-            R.drawable.adopcion3
+            "La tienda tiene todo lo que necesito, envíos rápidos y productos de calidad."
         ),
         Testimonial(
             "Valentina R.",
-            "El servicio de entrenadores me ayudó muchísimo con mi cachorro. ¡Muy profesionales!",
-            R.drawable.adopcion3
-        ),
-        Testimonial(
-            "Juan P.",
-            "La app es súper completa, pude agendar mi cita en minutos y todo salió perfecto.",
-            R.drawable.adopcion3
+            "El servicio de entrenadores me ayudó muchísimo con mi cachorro travieso."
         )
     )
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
-            text = "Lo que dicen nuestros usuarios",
+            text = "Lo que dicen nuestros usuarios ⭐",
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
+            color = PetPediaColors.OnSurface,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
             items(testimonials) { testimonial ->
-                Card(
-                    modifier = Modifier
-                        .width(280.dp)
-                        .height(180.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F7FF))
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    ) {
-                        // Foto de perfil
-                        Image(
-                            painter = painterResource(id = testimonial.photo),
-                            contentDescription = testimonial.name,
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        // Texto y nombre
-                        Column(
-                            verticalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxHeight()
-                        ) {
-                            Text(
-                                "“${testimonial.text}”",
-                                fontSize = 14.sp,
-                                color = Color.DarkGray
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                "- ${testimonial.name}",
-                                fontWeight = FontWeight.Medium,
-                                color = Color(0xFF4A148C)
-                            )
-                        }
-                    }
-                }
+                TestimonialCard(testimonial)
             }
         }
     }
 }
 
-// ---------------- DESTACADOS ----------------
 @Composable
-fun HighlightSection() {
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "Destacados",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
+private fun TestimonialCard(testimonial: Testimonial) {
+    Card(
+        modifier = Modifier
+            .width(300.dp)
+            .shadow(6.dp, RoundedCornerShape(18.dp)),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = PetPediaColors.Surface
         )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(6.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFEDE7F6))
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    "Campaña de Vacunación",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = Color(0xFF4A148C)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Durante este mes ofrecemos vacunación gratuita para perros y gatos rescatados. ¡No faltes!",
-                    fontSize = 14.sp,
-                    color = Color.DarkGray
-                )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            PetPediaColors.Primary.copy(alpha = 0.1f),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        testimonial.name.first().toString(),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PetPediaColors.Primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
+                    Text(
+                        testimonial.name,
+                        fontWeight = FontWeight.SemiBold,
+                        color = PetPediaColors.OnSurface
+                    )
+                    Row {
+                        repeat(5) {
+                            Icon(
+                                Icons.Default.Star,
+                                contentDescription = null,
+                                tint = PetPediaColors.Warning,
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "\"${testimonial.text}\"",
+                fontSize = 14.sp,
+                color = PetPediaColors.OnSurfaceVariant,
+                lineHeight = 20.sp
+            )
+        }
+    }
+}
+
+// ===================== NEWS SECTION =====================
+@Composable
+private fun NewsSection() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = PetPediaColors.Secondary
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            Color.White.copy(alpha = 0.2f),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("💉", fontSize = 24.sp)
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column {
+                    Text(
+                        "Campaña de Vacunación Gratuita",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        "Este mes • Evento especial",
+                        fontSize = 14.sp,
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                "Durante todo el mes ofrecemos vacunación gratuita para perros y gatos rescatados. ¡Una oportunidad única para cuidar a quienes más lo necesitan!",
+                fontSize = 16.sp,
+                color = Color.White.copy(alpha = 0.9f),
+                lineHeight = 22.sp
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Row {
+                Button(
+                    onClick = { },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        "Más información",
+                        color = PetPediaColors.Secondary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                OutlinedButton(
+                    onClick = { },
+                    border = androidx.compose.foundation.BorderStroke(
+                        2.dp,
+                        Color.White
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        "Compartir",
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White
+                    )
+                }
             }
         }
     }
