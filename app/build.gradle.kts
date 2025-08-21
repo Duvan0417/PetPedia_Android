@@ -14,7 +14,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -27,6 +26,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -40,37 +40,21 @@ android {
 }
 
 dependencies {
-    // Usa solo una de las siguientes dos líneas para cada dependencia
-    implementation(libs.androidx.core.ktx) // O
-    // implementation 'androidx.core:core-ktx:1.12.0'
+    // Usando version catalog (libs.*). Asegúrate de que existan en libs.versions.toml
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)        // activity-compose (solo 1 vez)
 
-    implementation(libs.androidx.lifecycle.runtime.ktx) // O
-    // implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
-
-    implementation(libs.androidx.activity.compose) // O
-    // implementation 'androidx.activity:activity-compose:1.8.2'
-
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui) // O
-    // implementation 'androidx.compose.ui:ui'
-
-    implementation(libs.androidx.ui.graphics) // O
-    // implementation 'androidx.compose.ui:ui-tooling-preview'
-
-    implementation(libs.androidx.ui.tooling.preview) // O
-    // implementation 'androidx.compose.material3:material3'
-
+    implementation(platform(libs.androidx.compose.bom))   // BOM para Compose (si lo tienes en el catalog)
+    implementation(libs.androidx.ui)                      // ui alias del catalog (si está definido)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    // Iconos adicionales (FilterList, etc.)
-    implementation("androidx.compose.material:material-icons-extended")
-
+    implementation("androidx.compose.material:material-icons-extended:1.4.0") // iconos (sin alias)
+    implementation("io.coil-kt:coil-compose:2.7.0") // Coil (usa AsyncImage / AsyncImagePainter)
 
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-
-    // Dependencias de prueba
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 

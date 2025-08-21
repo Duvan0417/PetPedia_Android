@@ -50,7 +50,6 @@ class MainActivity : ComponentActivity() {
                         RegisterScreen(
                             onRegister = { isLoggedIn = true },
                             onGoToLogin = { showRegister = false }
-
                         )
                     } else {
                         LoginScreen(
@@ -97,10 +96,11 @@ fun PetApp() {
     var mostrarPerfil by remember { mutableStateOf(false) }
     var mostrarEntrenadores by remember { mutableStateOf(false) }
     var mostrarAdopciones by remember { mutableStateOf(false) }
+    var mostrarGestionarServicios by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            topBar = { }, // Sin barra superior
+            topBar = { },
         ) { innerPadding ->
             Box(
                 modifier = Modifier
@@ -112,6 +112,9 @@ fun PetApp() {
                     mostrarPerfil -> PerfilScreen(onBack = { mostrarPerfil = false })
                     mostrarEntrenadores -> EntrenadoresScreen()
                     mostrarAdopciones -> AdopcionesScreen()
+                    mostrarGestionarServicios -> GestionarServiciosScreen(
+                        onBack = { mostrarGestionarServicios = false }
+                    )
                     else -> when (selectedTab) {
                         0 -> HomeScreen()
                         1 -> TiendaScreen(
@@ -130,7 +133,8 @@ fun PetApp() {
                         3 -> MasOpcionesScreen(
                             onNavigateToPerfil = { mostrarPerfil = true },
                             onNavigateToEntrenadores = { mostrarEntrenadores = true },
-                            onNavigateToAdopciones = { mostrarAdopciones = true }
+                            onNavigateToAdopciones = { mostrarAdopciones = true },
+                            onNavigateToGestionarServicios = { mostrarGestionarServicios = true }
                         )
                     }
                 }
@@ -180,6 +184,7 @@ fun PetApp() {
                                 mostrarPerfil = false
                                 mostrarEntrenadores = false
                                 mostrarAdopciones = false
+                                mostrarGestionarServicios = false
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = Color.White,
