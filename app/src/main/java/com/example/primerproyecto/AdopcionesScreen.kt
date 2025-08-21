@@ -35,7 +35,8 @@ fun AdopcionesScreen() {
             genero = "Hembra",
             tamano = "Mediana",
             vacunas = listOf("Antirrábica", "Parvovirus"),
-            descripcion = "Una perrita muy cariñosa y juguetona, ideal para familias.",
+            salud = "Desparasitada, esterilizada",
+            descripcion = "Una perrita muy cariñosa y juguetona, ideal para familias con niños.",
             imagenRes = R.drawable.adopcion2
         ),
         MascotaAdopcion(
@@ -45,19 +46,55 @@ fun AdopcionesScreen() {
             genero = "Macho",
             tamano = "Pequeño",
             vacunas = listOf("Triple Felina"),
-            descripcion = "Gatito curioso, perfecto para departamentos.",
+            salud = "Saludable, sin historial médico relevante",
+            descripcion = "Gatito curioso y muy sociable, perfecto para departamentos tranquilos.",
             imagenRes = R.drawable.adopcion3
         ),
         MascotaAdopcion(
-            nombre = "Rocky",
+            nombre = "Toby",
             edad = "3 años",
-            raza = "Pastor Alemán",
+            raza = "Golden Retriever",
             genero = "Macho",
             tamano = "Grande",
             vacunas = listOf("Antirrábica", "Moquillo"),
-            descripcion = "Fuerte y protector, busca un hogar con espacio amplio.",
-            imagenRes = R.drawable.adopcion
-        )
+            salud = "Vacunado al día, castrado",
+            descripcion = "Toby es un perro muy enérgico, le encanta correr y jugar en el parque.",
+            imagenRes = R.drawable.adopcion4
+        ),
+        MascotaAdopcion(
+            nombre = "Kiara",
+            edad = "6 meses",
+            raza = "conejo",
+            genero = "Hembra",
+            tamano = "Mediana",
+            vacunas = listOf("Parvovirus", "Moquillo"),
+            salud = "Vacunas  completas",
+            descripcion = " Ideal para familias activas.",
+            imagenRes = R.drawable.adopcion5
+        ),
+        MascotaAdopcion(
+            nombre = "Oliver",
+            edad = "4 años",
+            raza = "Gato Común",
+            genero = "Macho",
+            tamano = "Pequeño",
+            vacunas = listOf("Triple Felina", "Leucemia"),
+            salud = "Desparasitado, esterilizado",
+            descripcion = "Oliver es un gato independiente, le gusta pasar tiempo a solas pero disfruta de los mimos.",
+            imagenRes = R.drawable.adopcion6
+        ),
+        MascotaAdopcion(
+            nombre = "Max",
+            edad = "1 año",
+            raza = "gato",
+            genero = "Macho",
+            tamano = "Pequeño",
+            vacunas = listOf("Antirrábica", "Parvovirus"),
+            salud = "Certificado de salud, microchip",
+            descripcion = "Max es un gato divertido y bonachón. Le encanta dormir siestas y dar paseos cortos.",
+            imagenRes = R.drawable.adopcion7
+        ),
+
     )
 
     val filtradas = mascotas.filter { pet ->
@@ -73,7 +110,7 @@ fun AdopcionesScreen() {
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("Buscar mascota...") },
+            label = { Text("Buscar por nombre o raza...") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -87,13 +124,13 @@ fun AdopcionesScreen() {
         ) {
             items(filtradas) { pet ->
                 MascotaCard(pet)
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 }
 
-// ---------------- Modelo ----------------
+// ---------------- Modelo con nuevo campo de salud ----------------
 data class MascotaAdopcion(
     val nombre: String,
     val edad: String,
@@ -101,70 +138,121 @@ data class MascotaAdopcion(
     val genero: String,
     val tamano: String,
     val vacunas: List<String>,
+    val salud: String,
     val descripcion: String,
     val imagenRes: Int
 )
 
-// ---------------- Tarjeta Mascota ----------------
+// ---------------- Tarjeta de Mascota mejorada ----------------
 @Composable
 fun MascotaCard(mascota: MascotaAdopcion) {
     var showDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column {
             // Imagen principal
-            Box(
+            Image(
+                painter = painterResource(id = mascota.imagenRes),
+                contentDescription = mascota.nombre,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Image(
-                    painter = painterResource(id = mascota.imagenRes),
-                    contentDescription = mascota.nombre,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                )
-            }
-
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(mascota.nombre, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("${mascota.raza} • ${mascota.edad}", fontSize = 14.sp, color = Color.Gray)
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Chips de información rápida
-                val scrollState = rememberScrollState()
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(scrollState),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    InfoChip(label = mascota.genero)
-                    InfoChip(label = mascota.tamano)
-                    mascota.vacunas.forEach { vacuna ->
-                        InfoChip(label = vacuna)
+                    Text(
+                        mascota.nombre,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333)
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = if (mascota.genero == "Macho") Icons.Default.Male else Icons.Default.Female,
+                            contentDescription = "Género",
+                            tint = if (mascota.genero == "Macho") Color(0xFF6C63FF) else Color(0xFFE91E63),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            mascota.genero,
+                            fontSize = 16.sp,
+                            color = Color.Gray
+                        )
                     }
                 }
+                Text("${mascota.raza} • ${mascota.edad}", fontSize = 16.sp, color = Color.Gray)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Divider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Fila de iconos de información rápida
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    InfoIcon(icon = Icons.Default.Cake, label = mascota.edad)
+                    InfoIcon(icon = Icons.Default.Height, label = mascota.tamano)
+                    InfoIcon(icon = Icons.Default.MedicalServices, label = "Salud")
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Descripción y estado de salud
+                Text(
+                    mascota.descripcion,
+                    fontSize = 14.sp,
+                    color = Color.DarkGray,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(mascota.descripcion, fontSize = 14.sp, color = Color.DarkGray, maxLines = 3, overflow = TextOverflow.Ellipsis)
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Vacunas: ${mascota.vacunas.joinToString(", ")}",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF666666)
+                )
+
+                Text(
+                    "Estado de Salud: ${mascota.salud}",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF666666)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Button(
                     onClick = { showDialog = true },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0)),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
                 ) {
                     Icon(Icons.Default.Pets, contentDescription = "Adoptar", tint = Color.White, modifier = Modifier.padding(end = 6.dp))
-                    Text("Adoptar", color = Color.White)
+                    Text("¡Adoptar a ${mascota.nombre}!", color = Color.White, fontSize = 16.sp)
                 }
             }
         }
@@ -176,21 +264,28 @@ fun MascotaCard(mascota: MascotaAdopcion) {
     }
 }
 
-// ---------------- Chip de info ----------------
+// ---------------- Chip de info mejorado ----------------
 @Composable
-fun InfoChip(label: String) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF6C63FF)
+fun InfoIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = Color(0xFF6C28D0),
+            modifier = Modifier.size(32.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
-            color = Color.White,
             fontSize = 12.sp,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+            color = Color.Gray,
         )
     }
 }
+
 
 // ---------------- Formulario de Adopción ----------------
 @Composable
