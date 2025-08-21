@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.example.primerproyecto.ui.screens.HomeScreen
 
 // ======================= THEME =======================
 @Composable
@@ -49,11 +50,13 @@ class MainActivity : ComponentActivity() {
                         RegisterScreen(
                             onRegister = { isLoggedIn = true },
                             onGoToLogin = { showRegister = false }
+
                         )
                     } else {
                         LoginScreen(
                             onLogin = { isLoggedIn = true },
-                            onGoToRegister = { showRegister = true }
+                            onGoToRegister = { showRegister = true },
+                            onGuestLogin = { isLoggedIn = true } // 👈 acción de invitado
                         )
                     }
                 } else {
@@ -110,7 +113,7 @@ fun PetApp() {
                     mostrarEntrenadores -> EntrenadoresScreen()
                     mostrarAdopciones -> AdopcionesScreen()
                     else -> when (selectedTab) {
-                        0 -> HomeScreen(searchQuery = "")
+                        0 -> HomeScreen()
                         1 -> TiendaScreen(
                             carrito = carrito,
                             onAgregar = { producto ->

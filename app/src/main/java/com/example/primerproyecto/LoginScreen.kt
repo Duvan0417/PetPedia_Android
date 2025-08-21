@@ -24,7 +24,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun LoginScreen(
     onLogin: () -> Unit,
-    onGoToRegister: () -> Unit
+    onGoToRegister: () -> Unit,
+    onGuestLogin: () -> Unit // 👉 nuevo parámetro
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -92,6 +93,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Botón de login
             Button(
                 onClick = {
                     if (email.isBlank() || password.isBlank()) {
@@ -108,6 +110,17 @@ fun LoginScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
             ) {
                 Text("Entrar", color = Color.White)
+            }
+
+            // 👉 Botón de invitado
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = { onGuestLogin() },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF6C28D0))
+            ) {
+                Text("Ingresar como invitado")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
