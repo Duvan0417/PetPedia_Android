@@ -65,7 +65,7 @@ fun HomeScreen() {
                 ServiceItem("Veterinaria", R.drawable.veterinary, "Atención 24/7 para tu mascota."),
                 ServiceItem("Entrenador", R.drawable.pet_hotel2, "Entrenamiento positivo y profesional."),
                 ServiceItem("Adopciones", R.drawable.adopcion, "Encuentra tu mejor amigo."),
-                ServiceItem("Productos", R.drawable.collar, "Alimentos, juguetes y más.")
+                ServiceItem("Productos", R.drawable.collarp, "Alimentos, juguetes y más.")
             )
         )
 
@@ -323,7 +323,7 @@ fun RecommendationsSection() {
         )
 
         val productos = listOf(
-            R.drawable.collar,
+            R.drawable.collarp,
             R.drawable.pet_shop,
             R.drawable.adopcion
         )

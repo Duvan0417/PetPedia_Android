@@ -60,7 +60,73 @@ fun VeterinariasScreen() {
             estadoAbierto = false,
             horario = "Lun-Vie: 9:00 - 18:00",
             imagenRes = R.drawable.veterinary2
-        )
+        ),
+                Veterinaria(
+                nombre = "VetLife Clínica Veterinaria",
+        rating = 4.8,
+        distancia = "2.5 km",
+        ubicacion = "Norte",
+        etiquetas = listOf("Consulta general", "Exóticos", "Dermatología"),
+        descripcion = "Especialistas en mascotas exóticas y dermatología avanzada.",
+        estadoAbierto = false,
+        horario = "Lun-Vie: 9:00 - 18:00",
+        imagenRes = R.drawable.veterinary3
+    ),
+    Veterinaria(
+        nombre = "AnimalCare Plus",
+        rating = 4.6,
+        distancia = "1.8 km",
+        ubicacion = "Centro",
+        etiquetas = listOf("Urgencias 24h", "Vacunación", "Cirugía"),
+        descripcion = "Atención médica veterinaria con servicio de urgencias las 24 horas.",
+        estadoAbierto = true,
+        horario = "Todos los días: 24h",
+        imagenRes = R.drawable.veterinary4
+    ),
+    Veterinaria(
+        nombre = "Mascotas Felices",
+        rating = 4.3,
+        distancia = "3.2 km",
+        ubicacion = "Occidente",
+        etiquetas = listOf("Odontología", "Nutrición", "Terapias"),
+        descripcion = "Clínica especializada en odontología y planes de nutrición para mascotas.",
+        estadoAbierto = true,
+        horario = "Lun-Sáb: 8:00 - 19:00",
+        imagenRes = R.drawable.veterinary5
+    ),
+    Veterinaria(
+        nombre = "PetHouse Integral",
+        rating = 4.9,
+        distancia = "4.5 km",
+        ubicacion = "Sur",
+        etiquetas = listOf("Hospitalización", "Imágenes diagnósticas", "Rehabilitación"),
+        descripcion = "Ofrecemos hospitalización moderna y terapias de rehabilitación para tu mascota.",
+        estadoAbierto = false,
+        horario = "Lun-Vie: 7:00 - 17:00",
+        imagenRes = R.drawable.veterinary6
+    ),
+    Veterinaria(
+        nombre = "Clinivet Premium",
+        rating = 4.7,
+        distancia = "5.0 km",
+        ubicacion = "Oriente",
+        etiquetas = listOf("Exóticos", "Oncología", "Cardiología"),
+        descripcion = "Especialistas en animales exóticos y tratamientos avanzados de oncología y cardiología.",
+        estadoAbierto = true,
+        horario = "Lun-Dom: 8:00 - 20:00",
+        imagenRes = R.drawable.veterinary7
+    ),
+    Veterinaria(
+        nombre = "ZooSalud",
+        rating = 4.5,
+        distancia = "6.7 km",
+        ubicacion = "Noreste",
+        etiquetas = listOf("Medicina preventiva", "Vacunación", "Esterilización"),
+        descripcion = "Programas de salud preventiva y campañas de esterilización accesibles.",
+        estadoAbierto = true,
+        horario = "Mar-Dom: 9:00 - 18:00",
+        imagenRes = R.drawable.veterinary8
+    )
         // agrega más si quieres...
     )
 

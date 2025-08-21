@@ -41,7 +41,7 @@ fun TiendaScreen(
         Categoria("Todos", R.drawable.logopet),        // fallback
         Categoria("Perros", R.drawable.perro),        // reemplaza por tu drawable o usa logopet
         Categoria("Gatos", R.drawable.cat),
-        Categoria("Juguetes", R.drawable.juguetes),
+        Categoria("Juguetes", R.drawable.juguetespe),
         Categoria("Comida", R.drawable.comida),
         Categoria("Accesorios", R.drawable.accesorios)
     ).map { cat ->
@@ -58,12 +58,12 @@ fun TiendaScreen(
 
     // Usa la clase Producto definida en MainActivity (ver snippet más arriba)
     val productos = listOf(
-        Producto("Collar para perro", "Collar resistente y ajustable para perros", 25000.0, R.drawable.logopet, "Perros"),
-        Producto("Cama para gato", "Cama suave y cómoda para gatos", 80000.0, R.drawable.logopet, "Gatos"),
-        Producto("Juguete mordedor", "Juguete para entretener y cuidar los dientes", 15000.0, R.drawable.logopet, "Juguetes"),
-        Producto("Comida para perro 5kg", "Alimento balanceado de alta calidad", 95000.0, R.drawable.logopet, "Comida"),
-        Producto("Comida para gato 2kg", "Alimento premium para gatos", 62000.0, R.drawable.logopet, "Comida"),
-        Producto("Rascador para gatos", "Rascador grande con juguetes colgantes", 110000.0, R.drawable.logopet, "Accesorios")
+        Producto("Collar para perro", "Collar resistente y ajustable para perros", 25000.0, R.drawable.collarp, "Perros"),
+        Producto("Cama para gato", "Cama suave y cómoda para gatos", 80000.0, R.drawable.camap, "Gatos"),
+        Producto("Juguete mordedor", "Juguete para entretener y cuidar los dientes", 15000.0, R.drawable.juguetespe, "Juguetes"),
+        Producto("Comida para perro 5kg", "Alimento balanceado de alta calidad", 95000.0, R.drawable.comidaperro, "Comida"),
+        Producto("Comida para gato 2kg", "Alimento premium para gatos", 62000.0, R.drawable.comidagato, "Comida"),
+        Producto("Rascador para gatos", "Rascador grande con juguetes colgantes", 110000.0, R.drawable.rascador, "Accesorios")
     )
 
     val productosFiltrados = productos.filter { prod ->
