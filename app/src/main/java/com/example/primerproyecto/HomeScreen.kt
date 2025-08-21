@@ -12,6 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,6 +31,7 @@ import com.example.primerproyecto.R
 @Composable
 fun HomeScreen() {
     val scrollState = rememberScrollState()
+    var searchText by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -36,6 +39,24 @@ fun HomeScreen() {
             .background(Color.White)
             .verticalScroll(scrollState)
     ) {
+        // 🔹 Barra de búsqueda en la parte superior
+        OutlinedTextField(
+            value = searchText,
+            onValueChange = { searchText = it },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            placeholder = { Text("Buscar productos, servicios...") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Buscar"
+                )
+            },
+            singleLine = true,
+            shape = RoundedCornerShape(16.dp)
+        )
+
         // 🔹 Carrusel superior
         ImageCarousel(
             images = listOf(
@@ -45,13 +66,8 @@ fun HomeScreen() {
             )
         )
 
-        // 🔹 Barra búsqueda
-        SearchBar()
-
-
         // 🔹 Botones de acción rápida
         QuickActions()
-
 
         // 🔹 Zona bienvenida
         WelcomeSection()
@@ -85,6 +101,7 @@ fun HomeScreen() {
         HighlightSection()
     }
 }
+
 
 // ---------------- CARRUSEL ----------------
 @Composable
@@ -168,19 +185,6 @@ fun QuickActions() {
     }
 }
 
-// ---------------- BARRA DE BÚSQUEDA ----------------
-@Composable
-fun SearchBar() {
-    OutlinedTextField(
-        value = "",
-        onValueChange = { },
-        placeholder = { Text("Buscar servicios o productos...") },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(12.dp)
-    )
-}
 
 // ---------------- BIENVENIDA ----------------
 @Composable
@@ -431,19 +435,36 @@ fun TipsSection() {
             items(3) {
                 Card(
                     modifier = Modifier
-                        .width(200.dp)
-                        .height(150.dp),
+                        .width(220.dp)
+                        .height(220.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5))
+                    colors = CardDefaults.cardColors(containerColor = Color.White), // fondo blanco
+                    elevation = CardDefaults.cardElevation(6.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("🐾 Tip ${it + 1}", fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text("Recuerda mantener al día sus vacunas y chequeos veterinarios.",
-                            fontSize = 13.sp, color = Color.DarkGray)
+                    Column {
+                        // 🔹 Imagen que ocupa todo el ancho
+                        Image(
+                            painter = painterResource(id = R.drawable.dog_tips), // cámbialo por la imagen que quieras
+                            contentDescription = "Tip imagen",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp), // la mitad de la tarjeta
+                            contentScale = ContentScale.Crop
+                        )
+
+                        // 🔹 Texto debajo de la imagen
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text("🐾 Tip ${it + 1}", fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                "Recuerda mantener al día sus vacunas y chequeos veterinarios.",
+                                fontSize = 13.sp,
+                                color = Color.DarkGray
+                            )
+                        }
                     }
                 }
             }
@@ -452,8 +473,37 @@ fun TipsSection() {
 }
 
 // ---------------- TESTIMONIOS ----------------
+data class Testimonial(
+    val name: String,
+    val text: String,
+    val photo: Int
+)
+
 @Composable
 fun TestimonialSection() {
+    val testimonials = listOf(
+        Testimonial(
+            "Andrea G.",
+            "Gracias a PetCare adopté a mi perrita Luna y encontré un veterinario increíble. ¡Recomendado 100%!",
+            R.drawable.logopet // 🔹 reemplaza con tus imágenes
+        ),
+        Testimonial(
+            "Carlos M.",
+            "La tienda de productos tiene todo lo que necesito, los envíos son rápidos y de calidad.",
+            R.drawable.adopcion3
+        ),
+        Testimonial(
+            "Valentina R.",
+            "El servicio de entrenadores me ayudó muchísimo con mi cachorro. ¡Muy profesionales!",
+            R.drawable.adopcion3
+        ),
+        Testimonial(
+            "Juan P.",
+            "La app es súper completa, pude agendar mi cita en minutos y todo salió perfecto.",
+            R.drawable.adopcion3
+        )
+    )
+
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
             text = "Lo que dicen nuestros usuarios",
@@ -462,19 +512,52 @@ fun TestimonialSection() {
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    "“Gracias a PetCare adopté a mi perrita Luna y encontré un veterinario increíble. ¡Recomendado 100%!”",
-                    fontSize = 14.sp,
-                    color = Color.DarkGray
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("- Andrea G.", fontWeight = FontWeight.Medium)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            items(testimonials) { testimonial ->
+                Card(
+                    modifier = Modifier
+                        .width(280.dp)
+                        .height(180.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F7FF))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        // Foto de perfil
+                        Image(
+                            painter = painterResource(id = testimonial.photo),
+                            contentDescription = testimonial.name,
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        // Texto y nombre
+                        Column(
+                            verticalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxHeight()
+                        ) {
+                            Text(
+                                "“${testimonial.text}”",
+                                fontSize = 14.sp,
+                                color = Color.DarkGray
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                "- ${testimonial.name}",
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF4A148C)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
