@@ -21,7 +21,8 @@ fun MasOpcionesScreen(
     onNavigateToPerfil: () -> Unit,
     onNavigateToEntrenadores: () -> Unit,
     onNavigateToAdopciones: () -> Unit,
-    onNavigateToGestionarServicios: () -> Unit // 👈 nuevo
+    onNavigateToGestionarServicios: () -> Unit,
+    onNavigateToForo: () -> Unit // 👈 agregado
 ) {
     val opciones = listOf(
         "Perfil" to Icons.Default.Person,
@@ -63,7 +64,8 @@ fun MasOpcionesScreen(
                         "Perfil" -> onNavigateToPerfil()
                         "Entrenadores" -> onNavigateToEntrenadores()
                         "Adopciones" -> onNavigateToAdopciones()
-                        "Gestionar Servicios" -> onNavigateToGestionarServicios() // 👈 nuevo
+                        "Gestionar Servicios" -> onNavigateToGestionarServicios()
+                        "Foro" -> onNavigateToForo() // 👈 agregado
                     }
                 }
             ) {
