@@ -1,4 +1,4 @@
-package com.example.primerproyecto
+package com.example.primerproyecto.ui.view.entrenadores
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -21,11 +21,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.primerproyecto.R
 
 @Composable
 fun EntrenadoresScreen() {
@@ -356,7 +358,7 @@ fun EntrenadorCardBack(
             "\"${entrenador.filosofia}\"",
             fontSize = 14.sp,
             color = Color.DarkGray,
-            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+            fontStyle = FontStyle.Italic,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )

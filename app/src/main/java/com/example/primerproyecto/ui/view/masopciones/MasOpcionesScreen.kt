@@ -1,4 +1,4 @@
-package com.example.primerproyecto
+package com.example.primerproyecto.ui.view.masopciones
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -22,7 +22,7 @@ fun MasOpcionesScreen(
     onNavigateToEntrenadores: () -> Unit,
     onNavigateToAdopciones: () -> Unit,
     onNavigateToGestionarServicios: () -> Unit,
-    onNavigateToForo: () -> Unit // 👈 agregado
+    onNavigateToForo: () -> Unit
 ) {
     val opciones = listOf(
         "Perfil" to Icons.Default.Person,
@@ -65,7 +65,7 @@ fun MasOpcionesScreen(
                         "Entrenadores" -> onNavigateToEntrenadores()
                         "Adopciones" -> onNavigateToAdopciones()
                         "Gestionar Servicios" -> onNavigateToGestionarServicios()
-                        "Foro" -> onNavigateToForo() // 👈 agregado
+                        "Foro" -> onNavigateToForo()
                     }
                 }
             ) {

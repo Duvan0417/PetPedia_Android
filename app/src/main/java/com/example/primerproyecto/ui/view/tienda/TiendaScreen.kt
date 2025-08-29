@@ -1,4 +1,4 @@
-package com.example.primerproyecto
+package com.example.primerproyecto.ui.view.tienda
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,6 +23,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.primerproyecto.CarritoItem
+import com.example.primerproyecto.Producto
+import com.example.primerproyecto.R
 
 // Si tu versión de Compose necesita OptIn para LazyVerticalGrid, descomenta la línea siguiente:
 // @OptIn(ExperimentalFoundationApi::class)
@@ -58,12 +61,48 @@ fun TiendaScreen(
 
     // Usa la clase Producto definida en MainActivity (ver snippet más arriba)
     val productos = listOf(
-        Producto("Collar para perro", "Collar resistente y ajustable para perros", 25000.0, R.drawable.collarp, "Perros"),
-        Producto("Cama para gato", "Cama suave y cómoda para gatos", 80000.0, R.drawable.camap, "Gatos"),
-        Producto("Juguete mordedor", "Juguete para entretener y cuidar los dientes", 15000.0, R.drawable.juguetespe, "Juguetes"),
-        Producto("Comida para perro 5kg", "Alimento balanceado de alta calidad", 95000.0, R.drawable.comidaperro, "Comida"),
-        Producto("Comida para gato 2kg", "Alimento premium para gatos", 62000.0, R.drawable.comidagato, "Comida"),
-        Producto("Rascador para gatos", "Rascador grande con juguetes colgantes", 110000.0, R.drawable.rascador, "Accesorios")
+        Producto(
+            "Collar para perro",
+            "Collar resistente y ajustable para perros",
+            25000.0,
+            R.drawable.collarp,
+            "Perros"
+        ),
+        Producto(
+            "Cama para gato",
+            "Cama suave y cómoda para gatos",
+            80000.0,
+            R.drawable.camap,
+            "Gatos"
+        ),
+        Producto(
+            "Juguete mordedor",
+            "Juguete para entretener y cuidar los dientes",
+            15000.0,
+            R.drawable.juguetespe,
+            "Juguetes"
+        ),
+        Producto(
+            "Comida para perro 5kg",
+            "Alimento balanceado de alta calidad",
+            95000.0,
+            R.drawable.comidaperro,
+            "Comida"
+        ),
+        Producto(
+            "Comida para gato 2kg",
+            "Alimento premium para gatos",
+            62000.0,
+            R.drawable.comidagato,
+            "Comida"
+        ),
+        Producto(
+            "Rascador para gatos",
+            "Rascador grande con juguetes colgantes",
+            110000.0,
+            R.drawable.rascador,
+            "Accesorios"
+        )
     )
 
     val productosFiltrados = productos.filter { prod ->

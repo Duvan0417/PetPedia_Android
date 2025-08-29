@@ -16,11 +16,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.example.primerproyecto.ui.components.CarritoDialog
 import com.example.primerproyecto.ui.screens.HomeScreen
+import com.example.primerproyecto.ui.view.adopciones.AdopcionesScreen
+import com.example.primerproyecto.ui.view.entrenadores.EntrenadoresScreen
+import com.example.primerproyecto.ui.view.forum.ForumScreen
+import com.example.primerproyecto.ui.view.gestionarservicios.GestionarServiciosScreen
+import com.example.primerproyecto.ui.view.login.LoginScreen
+import com.example.primerproyecto.ui.view.masopciones.MasOpcionesScreen
+import com.example.primerproyecto.ui.view.perfil.PerfilScreen
+import com.example.primerproyecto.ui.view.register.RegisterScreen
+import com.example.primerproyecto.ui.view.tienda.TiendaScreen
+import com.example.primerproyecto.ui.view.veterinarias.VeterinariasScreen
 
 // ======================= THEME =======================
 @Composable
@@ -97,6 +107,7 @@ fun PetApp() {
     var mostrarEntrenadores by remember { mutableStateOf(false) }
     var mostrarAdopciones by remember { mutableStateOf(false) }
     var mostrarGestionarServicios by remember { mutableStateOf(false) }
+    var mostrarForo by remember { mutableStateOf(false) } // 👈 NUEVO estado para el foro
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -115,6 +126,9 @@ fun PetApp() {
                     mostrarGestionarServicios -> GestionarServiciosScreen(
                         onBack = { mostrarGestionarServicios = false }
                     )
+                    mostrarForo -> ForumScreen(onBack = {
+                        mostrarForo = false
+                    }) // 👈 NUEVA pantalla de foro
                     else -> when (selectedTab) {
                         0 -> HomeScreen()
                         1 -> TiendaScreen(
@@ -134,7 +148,8 @@ fun PetApp() {
                             onNavigateToPerfil = { mostrarPerfil = true },
                             onNavigateToEntrenadores = { mostrarEntrenadores = true },
                             onNavigateToAdopciones = { mostrarAdopciones = true },
-                            onNavigateToGestionarServicios = { mostrarGestionarServicios = true }
+                            onNavigateToGestionarServicios = { mostrarGestionarServicios = true },
+                            onNavigateToForo = { mostrarForo = true } // 👈 NUEVA navegación al foro
                         )
                     }
                 }
@@ -185,6 +200,7 @@ fun PetApp() {
                                 mostrarEntrenadores = false
                                 mostrarAdopciones = false
                                 mostrarGestionarServicios = false
+                                mostrarForo = false // 👈 Resetear también el foro
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = Color.White,
@@ -199,6 +215,7 @@ fun PetApp() {
             }
         }
 
+        // ... el resto del código del carrito permanece igual
         // ======= BOTÓN DE CARRITO ENCIMA DEL NAVBAR =======
         Box(
             modifier = Modifier
