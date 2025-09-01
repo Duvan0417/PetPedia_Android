@@ -109,7 +109,6 @@ fun PetApp() {
     var mostrarAdopciones by remember { mutableStateOf(false) }
     var mostrarGestionarServicios by remember { mutableStateOf(false) }
     var mostrarForo by remember { mutableStateOf(false) }
-    var mostrarPedidos by remember { mutableStateOf(false) }
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -204,7 +203,6 @@ fun PetApp() {
                                 mostrarAdopciones = false
                                 mostrarGestionarServicios = false
                                 mostrarForo = false
-                                mostrarPedidos = false
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = Color.White,
