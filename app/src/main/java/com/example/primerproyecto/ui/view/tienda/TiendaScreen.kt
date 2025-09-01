@@ -135,6 +135,7 @@ fun TiendaScreen(
         )
 
         // Categorías horizontal (imagen + nombre)
+        
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.padding(vertical = 8.dp)

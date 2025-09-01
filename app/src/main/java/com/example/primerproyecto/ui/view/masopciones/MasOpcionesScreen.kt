@@ -22,7 +22,8 @@ fun MasOpcionesScreen(
     onNavigateToEntrenadores: () -> Unit,
     onNavigateToAdopciones: () -> Unit,
     onNavigateToGestionarServicios: () -> Unit,
-    onNavigateToForo: () -> Unit
+    onNavigateToForo: () -> Unit,
+    onNavigateToPedidos: () -> Unit,
 ) {
     val opciones = listOf(
         "Perfil" to Icons.Default.Person,

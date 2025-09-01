@@ -32,6 +32,7 @@ import com.example.primerproyecto.ui.view.register.RegisterScreen
 import com.example.primerproyecto.ui.view.tienda.TiendaScreen
 import com.example.primerproyecto.ui.view.veterinarias.VeterinariasScreen
 
+
 // ======================= THEME =======================
 @Composable
 fun PetAppTheme(content: @Composable () -> Unit) {
@@ -65,7 +66,7 @@ class MainActivity : ComponentActivity() {
                         LoginScreen(
                             onLogin = { isLoggedIn = true },
                             onGoToRegister = { showRegister = true },
-                            onGuestLogin = { isLoggedIn = true } // 👈 acción de invitado
+                            onGuestLogin = { isLoggedIn = true }
                         )
                     }
                 } else {
@@ -107,7 +108,9 @@ fun PetApp() {
     var mostrarEntrenadores by remember { mutableStateOf(false) }
     var mostrarAdopciones by remember { mutableStateOf(false) }
     var mostrarGestionarServicios by remember { mutableStateOf(false) }
-    var mostrarForo by remember { mutableStateOf(false) } // 👈 NUEVO estado para el foro
+    var mostrarForo by remember { mutableStateOf(false) }
+    var mostrarPedidos by remember { mutableStateOf(false) }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -128,7 +131,7 @@ fun PetApp() {
                     )
                     mostrarForo -> ForumScreen(onBack = {
                         mostrarForo = false
-                    }) // 👈 NUEVA pantalla de foro
+                    })
                     else -> when (selectedTab) {
                         0 -> HomeScreen()
                         1 -> TiendaScreen(
@@ -149,7 +152,7 @@ fun PetApp() {
                             onNavigateToEntrenadores = { mostrarEntrenadores = true },
                             onNavigateToAdopciones = { mostrarAdopciones = true },
                             onNavigateToGestionarServicios = { mostrarGestionarServicios = true },
-                            onNavigateToForo = { mostrarForo = true } // 👈 NUEVA navegación al foro
+                            onNavigateToForo = { mostrarForo = true }
                         )
                     }
                 }
@@ -200,7 +203,8 @@ fun PetApp() {
                                 mostrarEntrenadores = false
                                 mostrarAdopciones = false
                                 mostrarGestionarServicios = false
-                                mostrarForo = false // 👈 Resetear también el foro
+                                mostrarForo = false
+                                mostrarPedidos = false
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = Color.White,
@@ -215,7 +219,6 @@ fun PetApp() {
             }
         }
 
-        // ... el resto del código del carrito permanece igual
         // ======= BOTÓN DE CARRITO ENCIMA DEL NAVBAR =======
         Box(
             modifier = Modifier
