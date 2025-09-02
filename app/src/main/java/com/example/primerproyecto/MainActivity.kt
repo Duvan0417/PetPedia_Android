@@ -27,10 +27,13 @@ import com.example.primerproyecto.ui.view.forum.ForumScreen
 import com.example.primerproyecto.ui.view.gestionarservicios.GestionarServiciosScreen
 import com.example.primerproyecto.ui.view.login.LoginScreen
 import com.example.primerproyecto.ui.view.masopciones.MasOpcionesScreen
+import com.example.primerproyecto.ui.view.pedidos.Pedido
 import com.example.primerproyecto.ui.view.perfil.PerfilScreen
 import com.example.primerproyecto.ui.view.register.RegisterScreen
 import com.example.primerproyecto.ui.view.tienda.TiendaScreen
 import com.example.primerproyecto.ui.view.veterinarias.VeterinariasScreen
+import com.example.primerproyecto.ui.view.pedidos.PedidosScreen
+
 
 
 // ======================= THEME =======================
@@ -101,7 +104,9 @@ data class CarritoItem(
 fun PetApp() {
     var selectedTab by remember { mutableStateOf(0) }
     val carrito = remember { mutableStateListOf<CarritoItem>() }
+    val pedidos = remember { mutableStateListOf<Pedido>() }
     var mostrarCarrito by remember { mutableStateOf(false) }
+
 
     // Estados para navegación en Más Opciones
     var mostrarPerfil by remember { mutableStateOf(false) }
@@ -109,6 +114,7 @@ fun PetApp() {
     var mostrarAdopciones by remember { mutableStateOf(false) }
     var mostrarGestionarServicios by remember { mutableStateOf(false) }
     var mostrarForo by remember { mutableStateOf(false) }
+    var mostrarPedidos by remember { mutableStateOf(false) }
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -131,6 +137,11 @@ fun PetApp() {
                     mostrarForo -> ForumScreen(onBack = {
                         mostrarForo = false
                     })
+                    mostrarPedidos -> PedidosScreen(
+                        pedidos = pedidos,
+                        onBack = { mostrarPedidos = false }
+                    )
+
                     else -> when (selectedTab) {
                         0 -> HomeScreen()
                         1 -> TiendaScreen(
@@ -151,7 +162,8 @@ fun PetApp() {
                             onNavigateToEntrenadores = { mostrarEntrenadores = true },
                             onNavigateToAdopciones = { mostrarAdopciones = true },
                             onNavigateToGestionarServicios = { mostrarGestionarServicios = true },
-                            onNavigateToForo = { mostrarForo = true }
+                            onNavigateToForo = { mostrarForo = true },
+                            onNavigateToPedidos = { mostrarPedidos = true }
                         )
                     }
                 }
@@ -263,6 +275,15 @@ fun PetApp() {
                     }
                 },
                 onFinalizarCompra = {
+                    // Crear un nuevo pedido al finalizar compra
+                    if (carrito.isNotEmpty()) {
+                        val total = carrito.sumOf { it.producto.precio * it.cantidad }
+                        pedidos.add(0, Pedido(
+                            productos = carrito.toList(),
+                            total = total
+                        )
+                        )
+                    }
                     mostrarCarrito = false
                     carrito.clear()
                 }

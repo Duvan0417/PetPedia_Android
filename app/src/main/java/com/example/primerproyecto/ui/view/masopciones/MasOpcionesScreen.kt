@@ -23,6 +23,8 @@ fun MasOpcionesScreen(
     onNavigateToAdopciones: () -> Unit,
     onNavigateToGestionarServicios: () -> Unit,
     onNavigateToForo: () -> Unit,
+    onNavigateToPedidos: () -> Unit
+
 ) {
     val opciones = listOf(
         "Perfil" to Icons.Default.Person,
@@ -33,6 +35,7 @@ fun MasOpcionesScreen(
         "Foro" to Icons.Default.Forum,
         "Solicitudes" to Icons.Default.MarkEmailUnread,
         "Gestionar Servicios" to Icons.Default.Build
+
     )
 
     Column(
@@ -66,6 +69,7 @@ fun MasOpcionesScreen(
                         "Adopciones" -> onNavigateToAdopciones()
                         "Gestionar Servicios" -> onNavigateToGestionarServicios()
                         "Foro" -> onNavigateToForo()
+                        "Pedidos" -> onNavigateToPedidos()
                     }
                 }
             ) {

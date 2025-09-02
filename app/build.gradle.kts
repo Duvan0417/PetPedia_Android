@@ -54,6 +54,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.4.0") // iconos (sin alias)
     implementation("io.coil-kt:coil-compose:2.7.0") // Coil (usa AsyncImage / AsyncImagePainter)
 
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.5.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
@@ -63,5 +66,8 @@ dependencies {
 
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("io.coil-kt:coil-compose:2.4.0")
+
+
+
 
 }
