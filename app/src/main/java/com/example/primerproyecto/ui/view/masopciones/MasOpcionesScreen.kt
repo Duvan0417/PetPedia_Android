@@ -23,7 +23,8 @@ fun MasOpcionesScreen(
     onNavigateToAdopciones: () -> Unit,
     onNavigateToGestionarServicios: () -> Unit,
     onNavigateToForo: () -> Unit,
-    onNavigateToPedidos: () -> Unit
+    onNavigateToPedidos: () -> Unit,
+
 
 ) {
     val opciones = listOf(

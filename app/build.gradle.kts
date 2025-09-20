@@ -36,38 +36,52 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true // Para si usas XML en algunas partes
     }
 }
 
 dependencies {
-    // Usando version catalog (libs.*). Asegúrate de que existan en libs.versions.toml
+    // Básicas de Android y Compose
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)        // activity-compose (solo 1 vez)
+    implementation(libs.androidx.activity.compose)
 
-    implementation(platform(libs.androidx.compose.bom))   // BOM para Compose (si lo tienes en el catalog)
-    implementation(libs.androidx.ui)                      // ui alias del catalog (si está definido)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    implementation("androidx.compose.material:material-icons-extended:1.4.0") // iconos (sin alias)
-    implementation("io.coil-kt:coil-compose:2.7.0") // Coil (usa AsyncImage / AsyncImagePainter)
+    // Navigation Compose (IMPORTANTE para MVVM con Compose)
+    implementation("androidx.navigation:navigation-compose:2.7.4")
 
+    // ViewModel para Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+
+    // Retrofit para API (usa version catalog si está definido, sino directo)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.5.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
+    // OkHttp para logging
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    // Coil para imágenes en Compose (mejor que Glide para Compose)
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+    // Splash screen
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-    implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("io.coil-kt:coil-compose:2.4.0")
-
-
-
-
 }
