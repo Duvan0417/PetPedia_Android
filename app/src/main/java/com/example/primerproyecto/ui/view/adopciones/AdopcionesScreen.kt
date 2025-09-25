@@ -16,90 +16,48 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.primerproyecto.R
+import com.example.primerproyecto.data.model.Adoption
+import com.example.primerproyecto.ui.viewmodel.AdoptionViewModel
 
 @Composable
 fun AdopcionesScreen() {
+    val viewModel: AdoptionViewModel = viewModel()
+    val adoptions by viewModel.adoptions.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
     var searchQuery by remember { mutableStateOf("") }
 
-    val mascotas = listOf(
-        MascotaAdopcion(
-            nombre = "Luna",
-            edad = "2 años",
-            raza = "Labrador",
-            genero = "Hembra",
-            tamano = "Mediana",
-            vacunas = listOf("Antirrábica", "Parvovirus"),
-            salud = "Desparasitada, esterilizada",
-            descripcion = "Una perrita muy cariñosa y juguetona, ideal para familias con niños.",
-            imagenRes = R.drawable.adopcion2
-        ),
-        MascotaAdopcion(
-            nombre = "Michi",
-            edad = "1 año",
-            raza = "Siames",
-            genero = "Macho",
-            tamano = "Pequeño",
-            vacunas = listOf("Triple Felina"),
-            salud = "Saludable, sin historial médico relevante",
-            descripcion = "Gatito curioso y muy sociable, perfecto para departamentos tranquilos.",
-            imagenRes = R.drawable.adopcion3
-        ),
-        MascotaAdopcion(
-            nombre = "Toby",
-            edad = "3 años",
-            raza = "Golden Retriever",
-            genero = "Macho",
-            tamano = "Grande",
-            vacunas = listOf("Antirrábica", "Moquillo"),
-            salud = "Vacunado al día, castrado",
-            descripcion = "Toby es un perro muy enérgico, le encanta correr y jugar en el parque.",
-            imagenRes = R.drawable.adopcion4
-        ),
-        MascotaAdopcion(
-            nombre = "Kiara",
-            edad = "6 meses",
-            raza = "conejo",
-            genero = "Hembra",
-            tamano = "Mediana",
-            vacunas = listOf("Parvovirus", "Moquillo"),
-            salud = "Vacunas  completas",
-            descripcion = " Ideal para familias activas.",
-            imagenRes = R.drawable.adopcion5
-        ),
-        MascotaAdopcion(
-            nombre = "Oliver",
-            edad = "4 años",
-            raza = "Gato Común",
-            genero = "Macho",
-            tamano = "Pequeño",
-            vacunas = listOf("Triple Felina", "Leucemia"),
-            salud = "Desparasitado, esterilizado",
-            descripcion = "Oliver es un gato independiente, le gusta pasar tiempo a solas pero disfruta de los mimos.",
-            imagenRes = R.drawable.adopcion6
-        ),
-        MascotaAdopcion(
-            nombre = "Max",
-            edad = "1 año",
-            raza = "gato",
-            genero = "Macho",
-            tamano = "Pequeño",
-            vacunas = listOf("Antirrábica", "Parvovirus"),
-            salud = "Certificado de salud, microchip",
-            descripcion = "Max es un gato divertido y bonachón. Le encanta dormir siestas y dar paseos cortos.",
-            imagenRes = R.drawable.adopcion7
-        ),
+    // Manejar errores
+    error?.let { errorMessage ->
+        AlertDialog(
+            onDismissRequest = { viewModel.clearError() },
+            title = { Text("Error") },
+            text = { Text(errorMessage) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearError() }) {
+                    Text("Aceptar")
+                }
+            }
+        )
+    }
 
-    )
+    // Filtrar solo adopciones que tienen pet
+    val adopcionesConMascota = adoptions.filter { it.pet != null }
 
-    val filtradas = mascotas.filter { pet ->
-        pet.nombre.contains(searchQuery, ignoreCase = true) ||
-                pet.raza.contains(searchQuery, ignoreCase = true)
+    val mascotasFiltradas = adopcionesConMascota.filter { adoption ->
+        adoption.pet?.name?.contains(searchQuery, ignoreCase = true) == true ||
+                adoption.pet?.breed?.contains(searchQuery, ignoreCase = true) == true
     }
 
     Column(
@@ -117,35 +75,50 @@ fun AdopcionesScreen() {
                 .padding(12.dp)
         )
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp)
-        ) {
-            items(filtradas) { pet ->
-                MascotaCard(pet)
-                Spacer(modifier = Modifier.height(16.dp))
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFF6C28D0))
+            }
+        } else if (adopcionesConMascota.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("No se encontraron mascotas para adoptar", color = Color.Gray)
+                    Text("La API no incluye datos de mascotas", color = Color.LightGray, fontSize = 12.sp)
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp)
+            ) {
+                items(mascotasFiltradas) { adoption ->
+                    adoption.pet?.let { pet ->
+                        MascotaCard(
+                            adoption = adoption,
+                            pet = pet,
+                            onAdoptClick = { /* Lógica de adopción */ }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
             }
         }
     }
 }
 
-// ---------------- Modelo con nuevo campo de salud ----------------
-data class MascotaAdopcion(
-    val nombre: String,
-    val edad: String,
-    val raza: String,
-    val genero: String,
-    val tamano: String,
-    val vacunas: List<String>,
-    val salud: String,
-    val descripcion: String,
-    val imagenRes: Int
-)
-
-// ---------------- Tarjeta de Mascota mejorada ----------------
 @Composable
-fun MascotaCard(mascota: MascotaAdopcion) {
+fun MascotaCard(adoption: Adoption, pet: com.example.primerproyecto.data.model.Pet, onAdoptClick: () -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
 
     Card(
@@ -155,16 +128,66 @@ fun MascotaCard(mascota: MascotaAdopcion) {
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column {
-            // Imagen principal
-            Image(
-                painter = painterResource(id = mascota.imagenRes),
-                contentDescription = mascota.nombre,
-                contentScale = ContentScale.Crop,
+            // Imagen principal desde la API
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(220.dp)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-            )
+            ) {
+                val imageUrl = if (pet.image.isNullOrEmpty()) {
+                    null
+                } else {
+                    if (pet.image!!.startsWith("http")) {
+                        pet.image
+                    } else {
+                        "http://10.0.2.2:8000/storage/${pet.image}"
+                    }
+                }
+
+                val painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.adopcion2),
+                    error = painterResource(R.drawable.adopcion2)
+                )
+
+                Image(
+                    painter = painter,
+                    contentDescription = pet.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                )
+
+                // Badge de estado de adopción
+                Surface(
+                    tonalElevation = 6.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    color = when (adoption.status) {
+                        "approved" -> Color(0xFF4CAF50)
+                        "rejected" -> Color.Red
+                        else -> Color(0xFFFF9800) // pending
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(10.dp)
+                ) {
+                    Text(
+                        text = when (adoption.status) {
+                            "approved" -> "Aprobado"
+                            "rejected" -> "Rechazado"
+                            else -> "Pendiente"
+                        },
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            }
 
             Column(
                 modifier = Modifier
@@ -177,32 +200,31 @@ fun MascotaCard(mascota: MascotaAdopcion) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        mascota.nombre,
+                        pet.name,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF333333)
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = if (mascota.genero == "Macho") Icons.Default.Male else Icons.Default.Female,
+                            imageVector = if (pet.sex.lowercase().contains("macho")) Icons.Default.Male else Icons.Default.Female,
                             contentDescription = "Género",
-                            tint = if (mascota.genero == "Macho") Color(0xFF6C63FF) else Color(0xFFE91E63),
+                            tint = if (pet.sex.lowercase().contains("macho")) Color(0xFF6C63FF) else Color(0xFFE91E63),
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            mascota.genero,
+                            pet.sex,
                             fontSize = 16.sp,
                             color = Color.Gray
                         )
                     }
                 }
-                Text("${mascota.raza} • ${mascota.edad}", fontSize = 16.sp, color = Color.Gray)
+
+                Text("${pet.species} • ${pet.breed} • ${pet.age}", fontSize = 16.sp, color = Color.Gray)
 
                 Spacer(modifier = Modifier.height(12.dp))
-
                 Divider(color = Color(0xFFEEEEEE), thickness = 1.dp)
-
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Fila de iconos de información rápida
@@ -210,16 +232,16 @@ fun MascotaCard(mascota: MascotaAdopcion) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    InfoIcon(icon = Icons.Default.Cake, label = mascota.edad)
-                    InfoIcon(icon = Icons.Default.Height, label = mascota.tamano)
-                    InfoIcon(icon = Icons.Default.MedicalServices, label = "Salud")
+                    InfoIcon(icon = Icons.Default.Cake, label = pet.age)
+                    InfoIcon(icon = Icons.Default.Height, label = "${pet.size} cm")
+                    InfoIcon(icon = Icons.Default.Pets, label = pet.species)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Descripción y estado de salud
+                // Descripción
                 Text(
-                    mascota.descripcion,
+                    pet.description,
                     fontSize = 14.sp,
                     color = Color.DarkGray,
                     maxLines = 3,
@@ -228,19 +250,27 @@ fun MascotaCard(mascota: MascotaAdopcion) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    "Vacunas: ${mascota.vacunas.joinToString(", ")}",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF666666)
-                )
+                // Información adicional opcional
+                pet.vaccines?.let { vaccines ->
+                    if (vaccines.isNotEmpty()) {
+                        Text(
+                            "Vacunas: ${vaccines.joinToString(", ")}",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF666666)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
 
-                Text(
-                    "Estado de Salud: ${mascota.salud}",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF666666)
-                )
+                pet.health?.let { health ->
+                    Text(
+                        "Estado de Salud: $health",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF666666)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -252,19 +282,25 @@ fun MascotaCard(mascota: MascotaAdopcion) {
                         .height(50.dp)
                 ) {
                     Icon(Icons.Default.Pets, contentDescription = "Adoptar", tint = Color.White, modifier = Modifier.padding(end = 6.dp))
-                    Text("¡Adoptar a ${mascota.nombre}!", color = Color.White, fontSize = 16.sp)
+                    Text("¡Adoptar a ${pet.name}!", color = Color.White, fontSize = 16.sp)
                 }
             }
         }
     }
 
-    // --------- FORMULARIO EMERGENTE ---------
+    // Formulario emergente
     if (showDialog) {
-        AdopcionFormDialog(mascota = mascota, onDismiss = { showDialog = false })
+        AdopcionFormDialog(
+            mascotaNombre = pet.name,
+            onDismiss = { showDialog = false },
+            onConfirm = { nombre, telefono, direccion, comentarios ->
+                // Aquí iría la lógica para enviar la solicitud de adopción a la API
+                showDialog = false
+            }
+        )
     }
 }
 
-// ---------------- Chip de info mejorado ----------------
 @Composable
 fun InfoIcon(icon: ImageVector, label: String) {
     Column(
@@ -286,10 +322,12 @@ fun InfoIcon(icon: ImageVector, label: String) {
     }
 }
 
-
-// ---------------- Formulario de Adopción ----------------
 @Composable
-fun AdopcionFormDialog(mascota: MascotaAdopcion, onDismiss: () -> Unit) {
+fun AdopcionFormDialog(
+    mascotaNombre: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String, String, String, String) -> Unit
+) {
     var nombre by remember { mutableStateOf("") }
     var telefono by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
@@ -300,10 +338,12 @@ fun AdopcionFormDialog(mascota: MascotaAdopcion, onDismiss: () -> Unit) {
         confirmButton = {
             Button(
                 onClick = {
-                    // Aquí iría la lógica para enviar la solicitud
-                    onDismiss()
+                    if (nombre.isNotEmpty() && telefono.isNotEmpty()) {
+                        onConfirm(nombre, telefono, direccion, comentarios)
+                    }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0)),
+                enabled = nombre.isNotEmpty() && telefono.isNotEmpty()
             ) {
                 Text("Confirmar", color = Color.White)
             }
@@ -314,7 +354,7 @@ fun AdopcionFormDialog(mascota: MascotaAdopcion, onDismiss: () -> Unit) {
             }
         },
         title = {
-            Text("Adoptar a ${mascota.nombre}", fontWeight = FontWeight.Bold)
+            Text("Adoptar a $mascotaNombre", fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

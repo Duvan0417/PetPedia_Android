@@ -17,121 +17,55 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.primerproyecto.R
+import com.example.primerproyecto.data.model.Veterinarian
+import com.example.primerproyecto.ui.viewmodel.VeterinarianViewModel
+import org.json.JSONArray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VeterinariasScreen() {
+    val viewModel: VeterinarianViewModel = viewModel()
+    val veterinarians by viewModel.veterinarians.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
     var searchQuery by remember { mutableStateOf("") }
-    var veterinariaSeleccionada by remember { mutableStateOf<Veterinaria?>(null) }
+    var veterinariaSeleccionada by remember { mutableStateOf<Veterinarian?>(null) }
     var mostrarFormulario by remember { mutableStateOf(false) }
     var mostrarMensaje by remember { mutableStateOf(false) }
 
     // Lista de mascotas del usuario (ejemplo)
     val mascotas = listOf("Firulais", "Michi", "Max")
 
-    // Lista de veterinarias de ejemplo (asegúrate de tener vet1, vet2 en drawable)
-    val veterinarias = listOf(
-        Veterinaria(
-            nombre = "AnimalCare Centro Veterinario",
-            rating = 4.5,
-            distancia = "1.2 km",
-            ubicacion = "Sur",
-            etiquetas = listOf("Vacunación", "Cardiología", "Peluquería", "Farmacia"),
-            descripcion = "Centro con especialistas en medicina intensiva, diagnóstico avanzado y cuidados.",
-            estadoAbierto = true,
-            horario = "Lun-Vie: 8:00 - 20:00",
-            imagenRes = R.drawable.veterinary
-        ),
-        Veterinaria(
-            nombre = "VetLife Clínica Veterinaria",
-            rating = 4.8,
-            distancia = "2.5 km",
-            ubicacion = "Norte",
-            etiquetas = listOf("Consulta general", "Exóticos", "Dermatología"),
-            descripcion = "Especialistas en mascotas exóticas y dermatología avanzada.",
-            estadoAbierto = false,
-            horario = "Lun-Vie: 9:00 - 18:00",
-            imagenRes = R.drawable.veterinary2
-        ),
-        Veterinaria(
-            nombre = "VetLife Clínica Veterinaria",
-            rating = 4.8,
-            distancia = "2.5 km",
-            ubicacion = "Norte",
-            etiquetas = listOf("Consulta general", "Exóticos", "Dermatología"),
-            descripcion = "Especialistas en mascotas exóticas y dermatología avanzada.",
-            estadoAbierto = false,
-            horario = "Lun-Vie: 9:00 - 18:00",
-            imagenRes = R.drawable.veterinary3
-        ),
-        Veterinaria(
-            nombre = "AnimalCare Plus",
-            rating = 4.6,
-            distancia = "1.8 km",
-            ubicacion = "Centro",
-            etiquetas = listOf("Urgencias 24h", "Vacunación", "Cirugía"),
-            descripcion = "Atención médica veterinaria con servicio de urgencias las 24 horas.",
-            estadoAbierto = true,
-            horario = "Todos los días: 24h",
-            imagenRes = R.drawable.veterinary4
-        ),
-        Veterinaria(
-            nombre = "Mascotas Felices",
-            rating = 4.3,
-            distancia = "3.2 km",
-            ubicacion = "Occidente",
-            etiquetas = listOf("Odontología", "Nutrición", "Terapias"),
-            descripcion = "Clínica especializada en odontología y planes de nutrición para mascotas.",
-            estadoAbierto = true,
-            horario = "Lun-Sáb: 8:00 - 19:00",
-            imagenRes = R.drawable.veterinary5
-        ),
-        Veterinaria(
-            nombre = "PetHouse Integral",
-            rating = 4.9,
-            distancia = "4.5 km",
-            ubicacion = "Sur",
-            etiquetas = listOf("Hospitalización", "Imágenes diagnósticas", "Rehabilitación"),
-            descripcion = "Ofrecemos hospitalización moderna y terapias de rehabilitación para tu mascota.",
-            estadoAbierto = false,
-            horario = "Lun-Vie: 7:00 - 17:00",
-            imagenRes = R.drawable.veterinary6
-        ),
-        Veterinaria(
-            nombre = "Clinivet Premium",
-            rating = 4.7,
-            distancia = "5.0 km",
-            ubicacion = "Oriente",
-            etiquetas = listOf("Exóticos", "Oncología", "Cardiología"),
-            descripcion = "Especialistas en animales exóticos y tratamientos avanzados de oncología y cardiología.",
-            estadoAbierto = true,
-            horario = "Lun-Dom: 8:00 - 20:00",
-            imagenRes = R.drawable.veterinary7
-        ),
-        Veterinaria(
-            nombre = "ZooSalud",
-            rating = 4.5,
-            distancia = "6.7 km",
-            ubicacion = "Noreste",
-            etiquetas = listOf("Medicina preventiva", "Vacunación", "Esterilización"),
-            descripcion = "Programas de salud preventiva y campañas de esterilización accesibles.",
-            estadoAbierto = true,
-            horario = "Mar-Dom: 9:00 - 18:00",
-            imagenRes = R.drawable.veterinary8
-        )
-        // agrega más si quieres...
-    )
+    val filtradas = veterinarians.filter { vet ->
+        vet.name.contains(searchQuery, ignoreCase = true) ||
+                vet.email.contains(searchQuery, ignoreCase = true) ||
+                vet.address.contains(searchQuery, ignoreCase = true)
+    }
 
-    val filtradas = veterinarias.filter { vet ->
-        vet.nombre.contains(searchQuery, ignoreCase = true) ||
-                vet.etiquetas.any { tag -> tag.contains(searchQuery, ignoreCase = true) }
+    // Manejar errores
+    error?.let { errorMessage ->
+        AlertDialog(
+            onDismissRequest = { viewModel.clearError() },
+            title = { Text("Error") },
+            text = { Text(errorMessage) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearError() }) {
+                    Text("Aceptar")
+                }
+            }
+        )
     }
 
     Column(
@@ -142,27 +76,47 @@ fun VeterinariasScreen() {
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("Buscar veterinaria o servicio...") },
+            label = { Text("Buscar veterinaria, email o dirección...") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
         )
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp)
-        ) {
-            items(filtradas) { vet ->
-                VeterinariaCard(
-                    vet = vet,
-                    onPedirCita = {
-                        veterinariaSeleccionada = vet
-                        mostrarFormulario = true
-                    }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFF6C28D0))
+            }
+        } else if (filtradas.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No se encontraron veterinarias", color = Color.Gray)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp)
+            ) {
+                items(filtradas) { vet ->
+                    VeterinariaCard(
+                        vet = vet,
+                        onPedirCita = {
+                            veterinariaSeleccionada = vet
+                            mostrarFormulario = true
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
     }
@@ -179,16 +133,36 @@ fun VeterinariasScreen() {
                     .padding(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Título: nombre de la veterinaria (no editable)
                     Text(
-                        text = veterinariaSeleccionada!!.nombre,
+                        text = veterinariaSeleccionada!!.name,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     )
 
-                    // ---------------- Servicio (Combo) ----------------
-                    var servicioSeleccionado by remember { mutableStateOf(veterinariaSeleccionada!!.etiquetas.firstOrNull() ?: "") }
+                    // Información de contacto
+                    Text(
+                        text = "📧 ${veterinariaSeleccionada!!.email}",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+
+                    Text(
+                        text = "📞 ${veterinariaSeleccionada!!.phone}",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+
+                    Text(
+                        text = "📍 ${veterinariaSeleccionada!!.address}",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+
+                    // ---------------- Servicios disponibles ----------------
+                    var servicioSeleccionado by remember {
+                        mutableStateOf("Consulta general")
+                    }
                     var expandedServicios by remember { mutableStateOf(false) }
 
                     Box(modifier = Modifier.fillMaxWidth()) {
@@ -210,7 +184,7 @@ fun VeterinariasScreen() {
                             onDismissRequest = { expandedServicios = false },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            veterinariaSeleccionada!!.etiquetas.forEach { servicio ->
+                            listOf("Consulta general", "Vacunación", "Cirugía", "Urgencias", "Peluquería").forEach { servicio ->
                                 DropdownMenuItem(
                                     text = { Text(servicio) },
                                     onClick = {
@@ -257,8 +231,17 @@ fun VeterinariasScreen() {
                         }
                     }
 
-                    // ---------------- Hora ----------------
+                    // ---------------- Fecha y Hora ----------------
+                    var fecha by remember { mutableStateOf("") }
                     var hora by remember { mutableStateOf("") }
+
+                    OutlinedTextField(
+                        value = fecha,
+                        onValueChange = { fecha = it },
+                        label = { Text("Fecha de la cita (YYYY-MM-DD)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
                     OutlinedTextField(
                         value = hora,
                         onValueChange = { hora = it },
@@ -269,14 +252,17 @@ fun VeterinariasScreen() {
                     // ---------------- Botón Confirmar ----------------
                     Button(
                         onClick = {
-                            // aquí podrías validar/guardar / enviar al backend
-                            mostrarFormulario = false
-                            mostrarMensaje = true
+                            // Validar campos
+                            if (fecha.isNotEmpty() && hora.isNotEmpty()) {
+                                mostrarFormulario = false
+                                mostrarMensaje = true
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0)),
+                        enabled = fecha.isNotEmpty() && hora.isNotEmpty()
                     ) {
-                        Text("Confirmar", color = Color.White)
+                        Text("Confirmar Cita", color = Color.White)
                     }
                 }
             }
@@ -288,9 +274,19 @@ fun VeterinariasScreen() {
         AlertDialog(
             onDismissRequest = { mostrarMensaje = false },
             title = { Text("Cita solicitada") },
-            text = { Text("Su servicio está pendiente y pronto será aceptado") },
+            text = {
+                Column {
+                    Text("Su cita ha sido solicitada exitosamente")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Veterinaria: ${veterinariaSeleccionada?.name ?: ""}", fontWeight = FontWeight.Bold)
+                    Text("Pronto será contactado para confirmar la cita")
+                }
+            },
             confirmButton = {
-                TextButton(onClick = { mostrarMensaje = false }) {
+                TextButton(onClick = {
+                    mostrarMensaje = false
+                    veterinariaSeleccionada = null
+                }) {
                     Text("Aceptar")
                 }
             }
@@ -298,22 +294,9 @@ fun VeterinariasScreen() {
     }
 }
 
-// ---------------- Modelo ----------------
-data class Veterinaria(
-    val nombre: String,
-    val rating: Double,
-    val distancia: String,
-    val ubicacion: String,
-    val etiquetas: List<String>,
-    val descripcion: String,
-    val estadoAbierto: Boolean,
-    val horario: String,
-    val imagenRes: Int
-)
-
-// ---------------- Tarjeta Veterinaria (diseño completo) ----------------
+// ---------------- Tarjeta Veterinaria actualizada con datos reales ----------------
 @Composable
-fun VeterinariaCard(vet: Veterinaria, onPedirCita: () -> Unit) {
+fun VeterinariaCard(vet: Veterinarian, onPedirCita: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth(),
@@ -322,22 +305,43 @@ fun VeterinariaCard(vet: Veterinaria, onPedirCita: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column {
-            // Imagen con badge de rating
+            // Imagen de la veterinaria
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
             ) {
+                val imageUrl = if (vet.image.isNullOrEmpty()) {
+                    // Imagen por defecto si no hay imagen
+                    null
+                } else {
+                    // Si la imagen es una URL completa o una ruta relativa
+                    if (vet.image!!.startsWith("http")) {
+                        vet.image
+                    } else {
+                        "http://127.0.0.1:8000/storage/${vet.image}"
+                    }
+                }
+
+                val painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.veterinary),
+                    error = painterResource(R.drawable.veterinary)
+                )
+
                 Image(
-                    painter = painterResource(id = vet.imagenRes),
-                    contentDescription = vet.nombre,
+                    painter = painter,
+                    contentDescription = vet.name,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                 )
 
-                // Badge de rating
+                // Badge de información
                 Surface(
                     tonalElevation = 6.dp,
                     shape = RoundedCornerShape(12.dp),
@@ -350,86 +354,96 @@ fun VeterinariaCard(vet: Veterinaria, onPedirCita: () -> Unit) {
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.MedicalServices, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(text = "${vet.rating}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(text = "Veterinaria", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                 }
             }
 
             // Contenido
             Column(modifier = Modifier.padding(12.dp)) {
-                Text(text = vet.nombre, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(
+                    text = vet.name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Información de contacto
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Email, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(vet.email, color = Color.Gray, fontSize = 13.sp)
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Phone, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(vet.phone, color = Color.Gray, fontSize = 13.sp)
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("${vet.ubicacion} • ${vet.distancia}", color = Color.Gray, fontSize = 13.sp)
+                    Text(vet.address, color = Color.Gray, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Chips con scroll horizontal (si hay muchas etiquetas)
-                val scrollState = rememberScrollState()
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(scrollState),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    vet.etiquetas.forEach { tag ->
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = Color(0xFF6C63FF),
-                        ) {
-                            Text(
-                                text = tag,
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                            )
-                        }
+                vet.schedules?.let { schedules ->
+                    if (schedules.isNotEmpty()) {
+                        Text("Horarios:", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        val cleanSchedules = schedules
+                            .replace("[", "")
+                            .replace("]", "")
+                            .replace("\"", "")
+                            .split(",")
+                            .joinToString("\n") { it.trim() }
+
+                        Text(cleanSchedules, fontSize = 12.sp, color = Color.DarkGray)
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                // Botón de acción
+                Button(
+                    onClick = onPedirCita,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                ) {
+                    Text("Pedir Cita", color = Color.White)
+                }
 
-                Text(text = vet.descripcion, fontSize = 14.sp, color = Color.DarkGray, maxLines = 3, overflow = TextOverflow.Ellipsis)
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Estado y acciones
-                val estadoColor = if (vet.estadoAbierto) Color(0xFF4CAF50) else Color.Red
-                val estadoTexto = if (vet.estadoAbierto) "Abierto ahora" else "Cerrado ahora"
-
+                // Botones adicionales
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Column {
-                        Text(text = estadoTexto, color = estadoColor, fontWeight = FontWeight.SemiBold)
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(text = vet.horario, color = Color.Gray, fontSize = 12.sp)
+                    TextButton(onClick = { /* Llamar */ }) {
+                        Icon(Icons.Default.Phone, contentDescription = "Llamar", modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Llamar")
                     }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Button(
-                            onClick = onPedirCita,
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
-                        ) {
-                            Text("Pedir Cita", color = Color.White)
-                        }
+                    TextButton(onClick = { /* Email */ }) {
+                        Icon(Icons.Default.Email, contentDescription = "Email", modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Email")
+                    }
 
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        IconButton(onClick = { /* compartir */ }) {
-                            Icon(Icons.Default.Share, contentDescription = "Compartir")
-                        }
-                        IconButton(onClick = { /* favorito */ }) {
-                            Icon(Icons.Default.Pets, contentDescription = "Favorito")
-                        }
+                    TextButton(onClick = { /* Compartir */ }) {
+                        Icon(Icons.Default.Share, contentDescription = "Compartir", modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Compartir")
                     }
                 }
             }

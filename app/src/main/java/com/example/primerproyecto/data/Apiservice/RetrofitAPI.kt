@@ -1,16 +1,17 @@
 package com.example.primerproyecto.data.Apiservice
 
-import com.example.primerproyecto.data.model.DataModel
+import com.example.primerproyecto.data.model.Adoption
+import com.example.primerproyecto.data.model.Veterinarian
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PUT
 
 interface RetrofitAPI {
-    @GET("veterinarias")
-    suspend fun getVeterinarias(): Response<VeterinariaResponse>
+    @GET("veterinaries")
+    suspend fun getVeterinarias(): Response<List<Veterinarian>>
 
-    @GET("adopciones")
-    suspend fun getAdopciones(): Response<AdopcionResponse>
-
+    @GET("adoptions") // Asegúrate que la ruta coincide con tu API
+    suspend fun getAdoptions(): Response<List<Adoption>>
  }
