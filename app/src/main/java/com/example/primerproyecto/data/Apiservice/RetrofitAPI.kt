@@ -9,9 +9,9 @@ import retrofit2.http.GET
 import retrofit2.http.PUT
 
 interface RetrofitAPI {
-    @GET("veterinaries")
+    @GET("veterinaries") // ruta para las veterinarias
     suspend fun getVeterinarias(): Response<List<Veterinarian>>
 
-    @GET("adoptions") // Asegúrate que la ruta coincide con tu API
+    @GET("adoptions") // ruta para las adopciones
     suspend fun getAdoptions(): Response<List<Adoption>>
  }
