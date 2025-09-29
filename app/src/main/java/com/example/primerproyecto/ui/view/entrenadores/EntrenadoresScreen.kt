@@ -1,6 +1,8 @@
 package com.example.primerproyecto.ui.view.entrenadores
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,8 +10,10 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -27,90 +31,31 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
 import com.example.primerproyecto.R
+import com.example.primerproyecto.data.model.Trainer
+import com.example.primerproyecto.ui.viewmodel.TrainerViewModel
 
 @Composable
 fun EntrenadoresScreen() {
+    val viewModel: TrainerViewModel = viewModel()
+    val trainers by viewModel.trainers.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
     var searchQuery by remember { mutableStateOf("") }
+    var selectedTrainer by remember { mutableStateOf<Trainer?>(null) }
+    var showDialog by remember { mutableStateOf(false) }
 
-    val entrenadores = listOf(
-        Entrenador(
-            nombre = "Carlos Ramírez",
-            especialidades = listOf("Adiestramiento básico", "Conducta"),
-            rating = 4.7,
-            experiencia = "5 años de experiencia",
-            descripcion = "Experto en comportamiento canino, especializado en perros adoptados.",
-            bio = "Carlos es un apasionado del mundo canino, con un enfoque en el refuerzo positivo. Su misión es construir una relación de confianza y respeto entre mascotas y dueños. Ha trabajado en refugios, ayudando a perros con historiales difíciles a encontrar un hogar feliz.",
-            certificaciones = listOf("Adiestrador Profesional", "Certificado en Conducta Canina"),
-            servicios = listOf("Clases Individuales", "Home Visits", "Socialización"),
-            filosofia = "El perro no es un problema a resolver, sino una mente a entender.",
-            imagenRes = R.drawable.carlos
-        ),
-        Entrenador(
-            nombre = "María López",
-            especialidades = listOf("Agility", "Obediencia avanzada"),
-            rating = 4.9,
-            experiencia = "8 años de experiencia",
-            descripcion = "Entrenadora de alto rendimiento, enfocada en deportes y obediencia avanzada.",
-            bio = "María es una competidora de agility y ha ganado múltiples premios. Se especializa en la preparación de perros para competiciones, trabajando en la coordinación, velocidad y obediencia en entornos de alto estrés. Su experiencia abarca diversas razas y temperamentos.",
-            certificaciones = listOf("Entrenadora de Agility Certificada", "Maestra en Obediencia Avanzada"),
-            servicios = listOf("Entrenamiento para Competición", "Clases Grupales", "Talleres de Agility"),
-            filosofia = "El éxito en el deporte canino comienza con un fuerte vínculo y confianza mutua.",
-            imagenRes = R.drawable.maria
-        ),
-        Entrenador(
-            nombre = "Ana Rodríguez",
-            especialidades = listOf("Socialización", "Entrenamiento de cachorros"),
-            rating = 4.5,
-            experiencia = "3 años de experiencia",
-            descripcion = "Ideal para socializar a tu cachorro y establecer bases sólidas.",
-            bio = "Ana cree que la socialización temprana es clave para un perro feliz y equilibrado. Ofrece clases grupales y sesiones individuales para ayudar a tu cachorro a explorar el mundo de forma segura y confiada, previniendo problemas de conducta futuros.",
-            certificaciones = listOf("Especialista en Cachorros", "Instructor de Clases de Socialización"),
-            servicios = listOf("Clases de Cachorros", "Socialización Temprana", "Consultas de Comportamiento"),
-            filosofia = "Invertir en el entrenamiento de un cachorro es la mejor inversión para su futuro.",
-            imagenRes = R.drawable.ana
-        ),
-        Entrenador(
-            nombre = "Javier Fernández",
-            especialidades = listOf("Obediencia básica", "Trucos"),
-            rating = 4.6,
-            experiencia = "6 años de experiencia",
-            descripcion = "Con un enfoque positivo, ayuda a tu mascota a aprender trucos y obediencia básica.",
-            bio = "Javier es conocido por sus sesiones divertidas y efectivas. Utiliza el clicker training para enseñar obediencia básica de forma rápida y lúdica. Le encanta enseñar trucos nuevos y complejos que fortalecen el vínculo entre dueño y mascota.",
-            certificaciones = listOf("Clicker Trainer Certificado", "Maestro en Adiestramiento Básico"),
-            servicios = listOf("Obediencia Básica", "Trucos Caninos", "Home Visits"),
-            filosofia = "Aprender debe ser un juego para ambos, no una tarea.",
-            imagenRes = R.drawable.javier
-        ),
-        Entrenador(
-            nombre = "Sofía Vargas",
-            especialidades = listOf("Rehabilitación de miedos", "Terapia canina"),
-            rating = 5.0,
-            experiencia = "10 años de experiencia",
-            descripcion = "Especialista en casos complejos de miedo y ansiedad en perros.",
-            bio = "Sofía es una experta en modificación de conducta. Se dedica a la rehabilitación de perros con ansiedad por separación, fobias y agresividad por miedo. Su método se basa en la paciencia y el entendimiento profundo de la psicología canina.",
-            certificaciones = listOf("Terapeuta Canina Certificada", "Especialista en Comportamiento Animal"),
-            servicios = listOf("Terapia de Ansiedad", "Modificación de Conducta", "Clases de Relajación"),
-            filosofia = "La paciencia y la comprensión son las herramientas más poderosas del adiestramiento.",
-            imagenRes = R.drawable.sofia
-        ),
-        Entrenador(
-            nombre = "Luis Castro",
-            especialidades = listOf("Protección personal", "Manejo deportivo"),
-            rating = 4.8,
-            experiencia = "12 años de experiencia",
-            descripcion = "Entrenador para perros de trabajo y deportes caninos de alta exigencia.",
-            bio = "Luis tiene una vasta experiencia entrenando perros para tareas de seguridad, búsqueda y rescate. Su entrenamiento es riguroso y enfocado en la disciplina, ideal para razas que requieren un alto nivel de actividad mental y física.",
-            certificaciones = listOf("Instructor de K-9", "Certificado en Protección y Búsqueda"),
-            servicios = listOf("Obediencia para Perros de Trabajo", "Preparación para Competencias", "Entrenamiento de Defensa"),
-            filosofia = "La disciplina y el propósito convierten a un perro en un compañero excepcional.",
-            imagenRes = R.drawable.luis
-        )
-    )
-
-    val filtrados = entrenadores.filter { ent ->
-        ent.nombre.contains(searchQuery, ignoreCase = true) ||
-                ent.especialidades.any { tag -> tag.contains(searchQuery, ignoreCase = true) }
+    val filtrados = if (searchQuery.isBlank()) {
+        trainers
+    } else {
+        trainers.filter { trainer ->
+            trainer.name.contains(searchQuery, ignoreCase = true) ||
+                    trainer.specialty.contains(searchQuery, ignoreCase = true) ||
+                    trainer.biography.contains(searchQuery, ignoreCase = true)
+        }
     }
 
     Column(
@@ -118,6 +63,7 @@ fun EntrenadoresScreen() {
             .fillMaxSize()
             .background(Color(0xFFF6F6F6))
     ) {
+        // Search bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -125,132 +71,252 @@ fun EntrenadoresScreen() {
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(16.dp)
         )
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp)
-        ) {
-            items(filtrados) { ent ->
-                FlippingEntrenadorCard(entrenador = ent)
-                Spacer(modifier = Modifier.height(12.dp))
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF6C28D0))
+                }
+            }
+
+            error != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Default.Error,
+                            contentDescription = "Error",
+                            tint = Color.Red,
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "Error al cargar entrenadores",
+                            color = Color.Red,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            error!!,
+                            color = Color.Gray,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { viewModel.loadTrainers() },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                        ) {
+                            Text("Reintentar")
+                        }
+                    }
+                }
+            }
+
+            filtrados.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Default.PersonOff,
+                            contentDescription = "Sin entrenadores",
+                            tint = Color.Gray,
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "No se encontraron entrenadores",
+                            color = Color.Gray,
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            if (searchQuery.isNotBlank()) "Intenta con otros términos de búsqueda"
+                            else "No hay entrenadores registrados",
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(filtrados) { trainer ->
+                        FlippingTrainerCard(
+                            trainer = trainer,
+                            onContactClick = {
+                                selectedTrainer = trainer
+                                showDialog = true
+                            }
+                        )
+                    }
+                }
             }
         }
     }
-}
 
-// ---------------- Modelo (Se agregaron más campos) ----------------
-data class Entrenador(
-    val nombre: String,
-    val especialidades: List<String>,
-    val rating: Double,
-    val experiencia: String,
-    val descripcion: String,
-    val bio: String,
-    val certificaciones: List<String>,
-    val servicios: List<String>,
-    val filosofia: String,
-    val imagenRes: Int
-)
+    // Dialog para contactar
+    if (showDialog && selectedTrainer != null) {
+        ContactTrainerDialog(
+            trainer = selectedTrainer!!,
+            onDismiss = {
+                showDialog = false
+                selectedTrainer = null
+            }
+        )
+    }
+}
 
 // ---------------- Tarjeta Entrenador que se voltea ----------------
 @Composable
-fun FlippingEntrenadorCard(entrenador: Entrenador) {
+fun FlippingTrainerCard(
+    trainer: Trainer,
+    onContactClick: () -> Unit
+) {
     var isFlipped by remember { mutableStateOf(false) }
     val rotation by animateFloatAsState(
         targetValue = if (isFlipped) 180f else 0f,
         animationSpec = tween(500), label = ""
     )
-    var showDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(480.dp) // Aumenta la altura para el contenido extra
+            .height(480.dp)
             .graphicsLayer {
                 rotationY = rotation
                 cameraDistance = 12f * density
             },
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         if (rotation <= 90f) {
             // Front Side
-            EntrenadorCardFront(
-                entrenador = entrenador,
+            TrainerCardFront(
+                trainer = trainer,
                 onFlipClick = { isFlipped = !isFlipped },
-                onScheduleClick = { showDialog = true }
+                onContactClick = onContactClick
             )
         } else {
             // Back Side
             Box(
                 modifier = Modifier.graphicsLayer { rotationY = 180f }
             ) {
-                EntrenadorCardBack(
-                    entrenador = entrenador,
+                TrainerCardBack(
+                    trainer = trainer,
                     onFlipClick = { isFlipped = !isFlipped },
-                    onScheduleClick = { showDialog = true }
+                    onContactClick = onContactClick
                 )
             }
         }
     }
-
-    if (showDialog) {
-        EntrenadorFormDialog(entrenador = entrenador, onDismiss = { showDialog = false })
-    }
 }
 
 @Composable
-fun EntrenadorCardFront(
-    entrenador: Entrenador,
+fun TrainerCardFront(
+    trainer: Trainer,
     onFlipClick: () -> Unit,
-    onScheduleClick: () -> Unit
+    onContactClick: () -> Unit
 ) {
     Column {
-        // Imagen + rating
+        // Imagen + rating desde la API
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp)
+                .height(200.dp)
         ) {
-            Image(
-                painter = painterResource(id = entrenador.imagenRes),
-                contentDescription = entrenador.nombre,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-            )
+            // Imagen desde la API
+            if (!trainer.image.isNullOrEmpty()) {
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        model = trainer.image,
+                        error = painterResource(id = R.drawable.ic_user_placeholder)
+                    ),
+                    contentDescription = trainer.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                )
+            } else {
+                // Imagen por defecto
+                Image(
+                    painter = painterResource(id = R.drawable.ic_user_placeholder),
+                    contentDescription = trainer.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                )
+            }
 
+            // Rating desde la API
             Surface(
                 tonalElevation = 6.dp,
                 shape = RoundedCornerShape(12.dp),
                 color = Color(0xFF6C28D0),
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(10.dp)
+                    .padding(12.dp)
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(Icons.Default.Star, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("${entrenador.rating}", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "${trainer.rating ?: 4.5}",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
                 }
             }
         }
 
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(entrenador.nombre, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(entrenador.experiencia, fontSize = 14.sp, color = Color.Gray)
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Nombre y experiencia
+            Text(
+                trainer.name,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF2E2E2E)
+            )
+            Text(
+                "${trainer.experience} años de experiencia",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Chips especialidades
+            // Especialidades desde la API
+            val especialidades = trainer.specialty.split(",").map { it.trim() }
             val scrollState = rememberScrollState()
             Row(
                 modifier = Modifier
@@ -258,7 +324,7 @@ fun EntrenadorCardFront(
                     .horizontalScroll(scrollState),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                entrenador.especialidades.forEach { esp ->
+                especialidades.forEach { esp ->
                     Surface(
                         shape = RoundedCornerShape(16.dp),
                         color = Color(0xFF6C63FF),
@@ -272,13 +338,23 @@ fun EntrenadorCardFront(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(entrenador.descripcion, fontSize = 14.sp, color = Color.DarkGray, maxLines = 3, overflow = TextOverflow.Ellipsis)
 
             Spacer(modifier = Modifier.height(12.dp))
+
+            // Descripción desde la API
+            Text(
+                trainer.biography.take(120) + if (trainer.biography.length > 120) "..." else "",
+                fontSize = 14.sp,
+                color = Color.DarkGray,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 18.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
             Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
-            // Sección de 'Voltear' mejorada
+            // Botón para voltear
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -290,91 +366,137 @@ fun EntrenadorCardFront(
                 Icon(Icons.Default.Flip, contentDescription = null, tint = Color(0xFF6C28D0), modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    "Toca para ver más",
+                    "Toca para ver más información",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF6C28D0),
                 )
             }
 
-            // Nuevo botón para Agendar Cita
+            // Botón de contacto
             Button(
-                onClick = onScheduleClick,
+                onClick = onContactClick,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0)),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp)
             ) {
-                Icon(Icons.Default.Pets, contentDescription = "Agendar", tint = Color.White, modifier = Modifier.padding(end = 6.dp))
-                Text("Agendar Cita Rápida", color = Color.White)
+                Icon(Icons.Default.ContactPhone, contentDescription = "Contactar", tint = Color.White, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Contactar Entrenador", color = Color.White)
             }
         }
     }
 }
 
 @Composable
-fun EntrenadorCardBack(
-    entrenador: Entrenador,
+fun TrainerCardBack(
+    trainer: Trainer,
     onFlipClick: () -> Unit,
-    onScheduleClick: () -> Unit
+    onContactClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val especialidades = trainer.specialty.split(",").map { it.trim() }
+    val certificaciones = trainer.qualifications.split(",").map { it.trim() }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(12.dp)
+            .padding(16.dp)
+            .verticalScroll(scrollState)
     ) {
-        // Título y biografía
-        Text("Acerca de ${entrenador.nombre}", fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-        Spacer(modifier = Modifier.height(8.dp))
-        Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(entrenador.bio, fontSize = 14.sp, color = Color.DarkGray, modifier = Modifier.fillMaxWidth())
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Sección de Certificaciones
-        Text("Certificaciones", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(6.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            entrenador.certificaciones.forEach { cert ->
-                Text("• $cert", fontSize = 14.sp, color = Color.Gray)
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Sección de Servicios
-        Text("Servicios", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(6.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            entrenador.servicios.forEach { serv ->
-                Text("• $serv", fontSize = 14.sp, color = Color.Gray)
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Sección de Filosofía
-        Text("Filosofía de Entrenamiento", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(6.dp))
+        // Título
         Text(
-            "\"${entrenador.filosofia}\"",
-            fontSize = 14.sp,
-            color = Color.DarkGray,
-            fontStyle = FontStyle.Italic,
+            "Información Completa",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Botón de Agendar
-        Button(
-            onClick = onScheduleClick,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0)),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.Pets, contentDescription = "Agendar", tint = Color.White, modifier = Modifier.padding(end = 6.dp))
-            Text("Agendar Sesión", color = Color.White)
-        }
         Spacer(modifier = Modifier.height(8.dp))
+        Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Biografía completa desde la API
+        Text(
+            trainer.biography,
+            fontSize = 14.sp,
+            color = Color.DarkGray,
+            lineHeight = 20.sp,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // En TrainerCardBack - reemplaza TODO el FlowRow por:
+        Text("Especialidades", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(especialidades) { esp ->
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF6C28D0).copy(alpha = 0.1f),
+                    border = BorderStroke(1.dp, Color(0xFF6C28D0).copy(alpha = 0.3f))
+                ) {
+                    Text(
+                        esp,
+                        color = Color(0xFF6C28D0),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Certificaciones desde la API
+        Text("Certificaciones", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            certificaciones.forEach { cert ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Check, contentDescription = null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(cert, fontSize = 14.sp, color = Color.Gray)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Información de contacto
+        Text("Información de Contacto", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(8.dp))
+        ContactInfoItem(
+            icon = Icons.Default.Phone,
+            title = "Teléfono",
+            value = trainer.phone
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        ContactInfoItem(
+            icon = Icons.Default.Email,
+            title = "Email",
+            value = trainer.email
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Botones de acción
+        Button(
+            onClick = onContactClick,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0)),
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp)
+        ) {
+            Icon(Icons.Default.ContactPhone, contentDescription = "Contactar", tint = Color.White)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Contactar Ahora", color = Color.White)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         Text(
             "Toca para voltear",
             fontSize = 12.sp,
@@ -387,68 +509,92 @@ fun EntrenadorCardBack(
     }
 }
 
-// ---------------- Formulario de Agendamiento ----------------
+// ---------------- Dialog de Contacto ----------------
 @Composable
-fun EntrenadorFormDialog(entrenador: Entrenador, onDismiss: () -> Unit) {
-    var nombre by remember { mutableStateOf("") }
-    var telefono by remember { mutableStateOf("") }
-    var fecha by remember { mutableStateOf("") }
-    var comentarios by remember { mutableStateOf("") }
-
+fun ContactTrainerDialog(
+    trainer: Trainer,
+    onDismiss: () -> Unit
+) {
     AlertDialog(
-        onDismissRequest = { onDismiss() },
-        confirmButton = {
-            Button(
-                onClick = {
-                    // Aquí iría la lógica para enviar la solicitud
-                    onDismiss()
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
-            ) {
-                Text("Confirmar", color = Color.White)
-            }
-        },
-        dismissButton = {
-            OutlinedButton(onClick = { onDismiss() }) {
-                Text("Cancelar")
-            }
-        },
+        onDismissRequest = onDismiss,
         title = {
-            Text("Agendar con ${entrenador.nombre}", fontWeight = FontWeight.Bold)
+            Text(
+                "Contactar a ${trainer.name}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+            )
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
-                    label = { Text("Tu nombre completo") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Rating
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Star, contentDescription = "Rating", tint = Color(0xFFFFC107))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Rating: ${trainer.rating ?: "No disponible"}", fontSize = 14.sp)
+                }
+
+                // Información de contacto
+                ContactInfoItem(
+                    icon = Icons.Default.Phone,
+                    title = "Teléfono",
+                    value = trainer.phone
                 )
-                OutlinedTextField(
-                    value = telefono,
-                    onValueChange = { telefono = it },
-                    label = { Text("Teléfono de contacto") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+
+                ContactInfoItem(
+                    icon = Icons.Default.Email,
+                    title = "Email",
+                    value = trainer.email
                 )
-                OutlinedTextField(
-                    value = fecha,
-                    onValueChange = { fecha = it },
-                    label = { Text("Fecha preferida") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = comentarios,
-                    onValueChange = { comentarios = it },
-                    label = { Text("Comentarios adicionales") },
-                    singleLine = false,
-                    modifier = Modifier.fillMaxWidth()
+
+                // Experiencia
+                ContactInfoItem(
+                    icon = Icons.Default.Work,
+                    title = "Experiencia",
+                    value = "${trainer.experience} años"
                 )
             }
         },
-        shape = RoundedCornerShape(16.dp),
-        containerColor = Color.White
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+            ) {
+                Text("Cerrar")
+            }
+        },
+        shape = RoundedCornerShape(16.dp)
     )
+}
+
+@Composable
+fun ContactInfoItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    value: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            icon,
+            contentDescription = title,
+            tint = Color(0xFF6C28D0),
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(
+                title,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+            Text(
+                value,
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+        }
+    }
 }
