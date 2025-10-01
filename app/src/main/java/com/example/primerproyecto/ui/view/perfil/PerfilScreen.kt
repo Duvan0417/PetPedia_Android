@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.primerproyecto
+package com.example.primerproyecto.ui.view.perfil
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -23,10 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.painterResource
 
 @Composable
 fun PerfilScreen(onBack: () -> Unit) {

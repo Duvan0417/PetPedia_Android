@@ -1,10 +1,8 @@
-package com.example.primerproyecto
+package com.example.primerproyecto.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -20,10 +18,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.primerproyecto.CarritoItem
+import com.example.primerproyecto.R
 
 @Composable
 fun CarritoDialog(
-    carrito: MutableList<CarritoItem>,
+    carrito: List<CarritoItem>,
     onCerrar: () -> Unit,
     onEliminar: (CarritoItem) -> Unit,
     onActualizarCantidad: (CarritoItem, Int) -> Unit,
@@ -100,74 +101,28 @@ fun CarritoDialog(
                                 .padding(bottom = 8.dp)
                         ) {
                             items(carrito) { item ->
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    shape = RoundedCornerShape(8.dp),
-                                    elevation = CardDefaults.cardElevation(4.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(8.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(item.producto.nombre, fontWeight = FontWeight.Bold)
-                                            Text(
-                                                item.producto.descripcion,
-                                                fontSize = 12.sp,
-                                                color = Color.Gray,
-                                                maxLines = 2
-                                            )
-                                        }
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            IconButton(onClick = {
-                                                if (item.cantidad > 1)
-                                                    onActualizarCantidad(item, item.cantidad - 1)
-                                            }) {
-                                                Icon(Icons.Default.Remove, contentDescription = "Menos")
-                                            }
-                                            Text("${item.cantidad}", fontWeight = FontWeight.Bold)
-                                            IconButton(onClick = {
-                                                onActualizarCantidad(item, item.cantidad + 1)
-                                            }) {
-                                                Icon(Icons.Default.Add, contentDescription = "Más")
-                                            }
-                                        }
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            Text(
-                                                "$${item.producto.precio * item.cantidad}",
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            IconButton(
-                                                onClick = { onEliminar(item) },
-                                                modifier = Modifier.size(24.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Delete,
-                                                    contentDescription = "Eliminar",
-                                                    tint = Color.Red
-                                                )
-                                            }
-                                        }
+                                ProductoCard(
+                                    item = item,
+                                    onEliminar = { onEliminar(item) },
+                                    onActualizarCantidad = { nuevaCantidad ->
+                                        onActualizarCantidad(item, nuevaCantidad)
                                     }
-                                }
+                                )
                             }
                         }
 
                         HorizontalDivider(thickness = 1.dp)
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        val total = carrito.sumOf { it.producto.precio * it.cantidad }
+                        val total = carrito.sumOf { it.product.price * it.cantidad }
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text("Total", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             Text(
-                                "$${total}",
+                                "$${String.format("%.2f", total)}",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
                                 color = Color(0xFF6C28D0)
@@ -196,8 +151,93 @@ fun CarritoDialog(
 }
 
 @Composable
+fun ProductoCard(
+    item: CarritoItem,
+    onEliminar: () -> Unit,
+    onActualizarCantidad: (Int) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Imagen del producto API
+            val imageUrl = if (!item.product.image.isNullOrEmpty()) {
+                if (item.product.image!!.startsWith("http")) item.product.image
+                else "http://10.0.2.2:8000/storage/${item.product.image}"
+            } else null
+
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = item.product.name,
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                error = androidx.compose.ui.res.painterResource(id = R.drawable.logopet)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(item.product.name, fontWeight = FontWeight.Bold)
+                Text(
+                    item.product.description,
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    maxLines = 2
+                )
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = {
+                        if (item.cantidad > 1) onActualizarCantidad(item.cantidad - 1)
+                    },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(Icons.Default.Remove, contentDescription = "Menos", modifier = Modifier.size(16.dp))
+                }
+                Text("${item.cantidad}", fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp))
+                IconButton(
+                    onClick = { onActualizarCantidad(item.cantidad + 1) },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Más", modifier = Modifier.size(16.dp))
+                }
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    "$${String.format("%.2f", item.product.price * item.cantidad)}",
+                    fontWeight = FontWeight.Bold
+                )
+                IconButton(
+                    onClick = onEliminar,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar",
+                        tint = Color.Red,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun MetodosPagoDialog(
-    onSeleccionarTarjeta: (String) -> Unit,
+    onSeleccionarTarjeta: () -> Unit,
     onCancelar: () -> Unit
 ) {
     var tarjetaSeleccionada by remember { mutableStateOf("") }
@@ -229,7 +269,9 @@ fun MetodosPagoDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onSeleccionarTarjeta(tarjetaSeleccionada) },
+                onClick = {
+                    onSeleccionarTarjeta()
+                },
                 enabled = tarjetaSeleccionada.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
             ) {

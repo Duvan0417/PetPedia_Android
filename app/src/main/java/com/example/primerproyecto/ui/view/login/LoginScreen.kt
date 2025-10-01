@@ -1,5 +1,6 @@
-package com.example.primerproyecto
+package com.example.primerproyecto.ui.view.login
 
+import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.primerproyecto.R
 
 @Composable
 fun LoginScreen(
@@ -112,7 +114,7 @@ fun LoginScreen(
                     onClick = {
                         if (email.isBlank() || password.isBlank()) {
                             errorMessage = "Por favor completa todos los campos"
-                        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                             errorMessage = "Correo inválido"
                         } else {
                             errorMessage = ""

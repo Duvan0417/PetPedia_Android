@@ -41,18 +41,24 @@ android {
 
 dependencies {
     // Usando version catalog (libs.*). Asegúrate de que existan en libs.versions.toml
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)        // activity-compose (solo 1 vez)
-
     implementation(platform(libs.androidx.compose.bom))   // BOM para Compose (si lo tienes en el catalog)
     implementation(libs.androidx.ui)                      // ui alias del catalog (si está definido)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    implementation("org.json:json:20231013")
+    implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("androidx.compose.material:material-icons-extended:1.4.0") // iconos (sin alias)
     implementation("io.coil-kt:coil-compose:2.7.0") // Coil (usa AsyncImage / AsyncImagePainter)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))

@@ -1,5 +1,6 @@
-package com.example.primerproyecto
+package com.example.primerproyecto.ui.view.register
 
+import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -209,7 +210,7 @@ fun RegisterScreen(
                                 errorMessage = "Por favor completa todos los campos obligatorios"
                                 return@Button
                             }
-                            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+                            if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
                                 errorMessage = "Correo inválido"
                                 return@Button
                             }

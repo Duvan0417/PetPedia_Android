@@ -19,7 +19,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -456,7 +455,7 @@ private fun ServicesSection() {
     val services = listOf(
         ServiceItem(
             "Veterinaria 24/7",
-            R.drawable.veterinary,
+            R.drawable.veterinary2,
             "Atención médica profesional las 24 horas del día.",
             PetPediaColors.Success
         ),
