@@ -328,8 +328,8 @@ fun VeterinariaCard(vet: Veterinarian, onPedirCita: () -> Unit) {
                         .data(imageUrl)
                         .crossfade(true)
                         .build(),
-                    placeholder = painterResource(R.drawable.veterinary),
-                    error = painterResource(R.drawable.veterinary)
+                    placeholder = painterResource(R.drawable.veterinary2),
+                    error = painterResource(R.drawable.veterinary2)
                 )
 
                 Image(

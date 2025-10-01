@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.example.primerproyecto.data.model.Products
 import com.example.primerproyecto.ui.components.CarritoDialog
 import com.example.primerproyecto.ui.screens.HomeScreen
 import com.example.primerproyecto.ui.view.adopciones.AdopcionesScreen
@@ -27,14 +28,11 @@ import com.example.primerproyecto.ui.view.forum.ForumScreen
 import com.example.primerproyecto.ui.view.gestionarservicios.GestionarServiciosScreen
 import com.example.primerproyecto.ui.view.login.LoginScreen
 import com.example.primerproyecto.ui.view.masopciones.MasOpcionesScreen
-import com.example.primerproyecto.ui.view.pedidos.Pedido
+import com.example.primerproyecto.ui.view.pedidos.PedidosScreen
 import com.example.primerproyecto.ui.view.perfil.PerfilScreen
 import com.example.primerproyecto.ui.view.register.RegisterScreen
 import com.example.primerproyecto.ui.view.tienda.TiendaScreen
 import com.example.primerproyecto.ui.view.veterinarias.VeterinariasScreen
-import com.example.primerproyecto.ui.view.pedidos.PedidosScreen
-
-
 
 // ======================= THEME =======================
 @Composable
@@ -86,27 +84,30 @@ data class TabItem(
     val iconVector: ImageVector
 )
 
-data class Producto(
-    val nombre: String,
-    val descripcion: String,
-    val precio: Double,
-    val imagenRes: Int,
-    val categoria: String
+// Data class para items del carrito
+data class CarritoItem(
+    val product: Products,
+    var cantidad: Int
 )
 
-data class CarritoItem(
-    val producto: Producto,
-    var cantidad: Int
+// Data class para representar el carrito de la base de datos
+data class ShoppingCart(
+    val id: Int,
+    val amount: Double,
+    val date: String,
+    val userId: Int?
 )
 
 // ======================= MAIN APP =======================
 @Composable
 fun PetApp() {
     var selectedTab by remember { mutableStateOf(0) }
+
+    // ✅ UNA SOLA LISTA PARA EL CARRITO
     val carrito = remember { mutableStateListOf<CarritoItem>() }
+
     val pedidos = remember { mutableStateListOf<Pedido>() }
     var mostrarCarrito by remember { mutableStateOf(false) }
-
 
     // Estados para navegación en Más Opciones
     var mostrarPerfil by remember { mutableStateOf(false) }
@@ -115,7 +116,6 @@ fun PetApp() {
     var mostrarGestionarServicios by remember { mutableStateOf(false) }
     var mostrarForo by remember { mutableStateOf(false) }
     var mostrarPedidos by remember { mutableStateOf(false) }
-
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -134,25 +134,20 @@ fun PetApp() {
                     mostrarGestionarServicios -> GestionarServiciosScreen(
                         onBack = { mostrarGestionarServicios = false }
                     )
-                    mostrarForo -> ForumScreen(onBack = {
-                        mostrarForo = false
-                    })
-                    mostrarPedidos -> PedidosScreen(
-                        pedidos = pedidos,
-                        onBack = { mostrarPedidos = false }
-                    )
+                    mostrarForo -> ForumScreen(onBack = { mostrarForo = false })
+                    mostrarPedidos -> PedidosScreen(onBack = { mostrarPedidos = false })
 
                     else -> when (selectedTab) {
                         0 -> HomeScreen()
                         1 -> TiendaScreen(
                             carrito = carrito,
-                            onAgregar = { producto ->
-                                val existente = carrito.find { it.producto == producto }
+                            onAgregar = { product ->
+                                val existente = carrito.find { it.product.id == product.id }
                                 if (existente != null) {
                                     carrito[carrito.indexOf(existente)] =
                                         existente.copy(cantidad = existente.cantidad + 1)
                                 } else {
-                                    carrito.add(CarritoItem(producto, 1))
+                                    carrito.add(CarritoItem(product, 1))
                                 }
                             }
                         )
@@ -215,6 +210,7 @@ fun PetApp() {
                                 mostrarAdopciones = false
                                 mostrarGestionarServicios = false
                                 mostrarForo = false
+                                mostrarPedidos = false
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = Color.White,
@@ -244,7 +240,10 @@ fun PetApp() {
                 Icon(Icons.Filled.ShoppingCart, contentDescription = "Carrito")
             }
 
-            if (carrito.isNotEmpty()) {
+            // ✅ Mostrar contador de productos
+            val totalItems = carrito.sumOf { it.cantidad }
+
+            if (totalItems > 0) {
                 Box(
                     modifier = Modifier
                         .offset(x = 28.dp, y = (-10).dp)
@@ -254,7 +253,7 @@ fun PetApp() {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = carrito.sumOf { it.cantidad }.toString(),
+                        text = totalItems.toString(),
                         color = Color.White,
                         fontSize = 11.sp
                     )
@@ -275,14 +274,17 @@ fun PetApp() {
                     }
                 },
                 onFinalizarCompra = {
-                    // Crear un nuevo pedido al finalizar compra
+                    // Calcular el total para guardar en la base de datos
+                    val total = carrito.sumOf { it.product.price * it.cantidad }
+
                     if (carrito.isNotEmpty()) {
-                        val total = carrito.sumOf { it.producto.precio * it.cantidad }
+                        // Aquí deberías llamar a tu API para guardar el carrito
+                        // shoppingCartRepository.saveShoppingCart(total, carrito)
+
                         pedidos.add(0, Pedido(
                             productos = carrito.toList(),
                             total = total
-                        )
-                        )
+                        ))
                     }
                     mostrarCarrito = false
                     carrito.clear()
@@ -291,3 +293,9 @@ fun PetApp() {
         }
     }
 }
+
+// Data class simplificada para Pedido
+data class Pedido(
+    val productos: List<CarritoItem>,
+    val total: Double
+)

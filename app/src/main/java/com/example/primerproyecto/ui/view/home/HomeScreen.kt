@@ -455,7 +455,7 @@ private fun ServicesSection() {
     val services = listOf(
         ServiceItem(
             "Veterinaria 24/7",
-            R.drawable.veterinary,
+            R.drawable.veterinary2,
             "Atención médica profesional las 24 horas del día.",
             PetPediaColors.Success
         ),
