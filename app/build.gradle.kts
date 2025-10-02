@@ -42,14 +42,15 @@ android {
 dependencies {
     // Usando version catalog (libs.*). Asegúrate de que existan en libs.versions.toml
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)        // activity-compose (solo 1 vez)
-    implementation(platform(libs.androidx.compose.bom))   // BOM para Compose (si lo tienes en el catalog)
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
+    implementation("androidx.activity:activity-compose:1.9.2")
+    implementation(platform("androidx.compose:compose-bom:2024.09.00")) // BOM para Compose (si lo tienes en el catalog)
     implementation(libs.androidx.ui)                      // ui alias del catalog (si está definido)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     implementation("org.json:json:20231013")
     implementation("io.coil-kt:coil-compose:2.4.0")

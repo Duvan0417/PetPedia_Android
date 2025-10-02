@@ -1,58 +1,52 @@
 package com.example.primerproyecto.data.Apiservice
 
-import com.example.primerproyecto.data.model.Adoption
-import com.example.primerproyecto.data.model.OrderItems
-import com.example.primerproyecto.data.model.Orders
-import com.example.primerproyecto.data.model.Products
-import com.example.primerproyecto.data.model.Trainer
-import com.example.primerproyecto.data.model.Veterinarian
-import retrofit2.Call
+import com.example.primerproyecto.data.model.*
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface RetrofitAPI {
-    @GET("veterinaries") // ruta para las veterinarias
+
+    //  ENDPOINTS DE AUTENTICACIÓN
+    @POST("auth/register")
+    suspend fun register(@Body registerRequest: RegisterRequest): Response<RegisterResponse>
+
+    @POST("auth/login")
+    suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
+
+    @GET("auth/roles")
+    suspend fun getRoles(): Response<Role>
+
+    @GET("auth/me")
+    suspend fun getCurrentUser(): Response<User>
+
+    //  ENDPOINTS SERVICIOS
+    @GET("veterinaries")
     suspend fun getVeterinarias(): Response<List<Veterinarian>>
 
-    @GET("adoptions") // ruta para las adopciones
+    @GET("adoptions")
     suspend fun getAdoptions(): Response<List<Adoption>>
 
     @GET("trainers")
     suspend fun getTrainers(): Response<List<Trainer>>
 
-    @GET("products") // ✅ NUEVO ENDPOINT
+    @GET("products")
     suspend fun getProducts(): Response<List<Products>>
 
     @GET("orders")
     suspend fun getOrders(): Response<List<Orders>>
 
-    @GET("orderitems") // ✅ Cambiado a "orderitems" (igual que tu tabla)
+    @GET("orderitems")
     suspend fun getOrderItems(): Response<List<OrderItems>>
 
-    @GET("orderitems/order/{orderId}") // Endpoint para items por orden
+    @GET("orderitems/order/{orderId}")
     suspend fun getOrderItemsByOrder(@Path("orderId") orderId: Int): Response<List<OrderItems>>
 
     @POST("orders")
-    suspend fun createOrder(@Body orderRequest: OrderRequest): Response<Orders>
+    suspend fun createOrder(@Body orderRequest: Orders): Response<Orders>
 
     @POST("orderitems")
-    suspend fun createOrderItem(@Body orderItem: OrderItemRequest): Response<OrderItems>
+    suspend fun createOrderItem(@Body orderItem: OrderItems): Response<OrderItems>
 }
-data class OrderRequest(
-    val status: String = "pending",
-    val total_amount: Double,
-    val user_id: Int,
-    val order_date: String
-)
-
-data class OrderItemRequest(
-    val quantity: Int,
-    val price: Double,
-    val order_id: Int,
-    val product_id: Int
-)
-

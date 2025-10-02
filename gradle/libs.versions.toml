@@ -1,13 +1,13 @@
 [versions]
-agp = "8.9.1"
-kotlin = "2.0.21"
-coreKtx = "1.10.1"
-junit = "4.13.2"
-junitVersion = "1.1.5"
-espressoCore = "3.5.1"
-lifecycleRuntimeKtx = "2.6.1"
-activityCompose = "1.8.0"
-composeBom = "2024.09.00"
+agp = "8.12.3"                    # ✅ Actualizado
+kotlin = "2.0.21"                 # ✅ Mantener
+coreKtx = "1.13.1"                # ✅ Actualizado  
+junit = "4.13.2"                  # ✅ Mantener
+junitVersion = "1.1.5"            # ✅ Mantener
+espressoCore = "3.5.1"            # ✅ Mantener
+lifecycleRuntimeKtx = "2.8.2"     # ✅ Actualizado
+activityCompose = "1.9.2"         # ✅ Actualizado
+composeBom = "2024.09.00"     
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

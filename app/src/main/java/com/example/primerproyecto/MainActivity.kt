@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.example.primerproyecto.data.Apiservice.RetrofitService
 import com.example.primerproyecto.data.model.Products
 import com.example.primerproyecto.ui.components.CarritoDialog
 import com.example.primerproyecto.ui.screens.HomeScreen
@@ -56,22 +57,36 @@ class MainActivity : ComponentActivity() {
             PetAppTheme {
                 var isLoggedIn by remember { mutableStateOf(false) }
                 var showRegister by remember { mutableStateOf(false) }
+                var authToken by remember { mutableStateOf<String?>(null) }
 
                 if (!isLoggedIn) {
                     if (showRegister) {
                         RegisterScreen(
-                            onRegister = { isLoggedIn = true },
+                            onRegisterSuccess = { token ->
+                                // Guardar el token y actualizar estado
+                                authToken = token
+                                RetrofitService.setAuthToken(token)
+                                isLoggedIn = true
+                            },
                             onGoToLogin = { showRegister = false }
                         )
                     } else {
                         LoginScreen(
-                            onLogin = { isLoggedIn = true },
+                            onLoginSuccess = { token ->
+                                // Guardar el token y actualizar estado
+                                authToken = token
+                                RetrofitService.setAuthToken(token)
+                                isLoggedIn = true
+                            },
                             onGoToRegister = { showRegister = true },
-                            onGuestLogin = { isLoggedIn = true }
+                            onGuestLogin = {
+                                // Para guest, no hay token
+                                isLoggedIn = true
+                            }
                         )
                     }
                 } else {
-                    PetApp()
+                    PetApp(authToken = authToken)
                 }
             }
         }
@@ -98,9 +113,15 @@ data class ShoppingCart(
     val userId: Int?
 )
 
+// Data class simplificada para Pedido
+data class Pedido(
+    val productos: List<CarritoItem>,
+    val total: Double
+)
+
 // ======================= MAIN APP =======================
 @Composable
-fun PetApp() {
+fun PetApp(authToken: String? = null) {
     var selectedTab by remember { mutableStateOf(0) }
 
     // ✅ UNA SOLA LISTA PARA EL CARRITO
@@ -120,50 +141,51 @@ fun PetApp() {
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = { },
-        ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
-                when {
-                    mostrarPerfil -> PerfilScreen(onBack = { mostrarPerfil = false })
-                    mostrarEntrenadores -> EntrenadoresScreen()
-                    mostrarAdopciones -> AdopcionesScreen()
-                    mostrarGestionarServicios -> GestionarServiciosScreen(
-                        onBack = { mostrarGestionarServicios = false }
-                    )
-                    mostrarForo -> ForumScreen(onBack = { mostrarForo = false })
-                    mostrarPedidos -> PedidosScreen(onBack = { mostrarPedidos = false })
+            content = { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .background(MaterialTheme.colorScheme.background)
+                ) {
+                    when {
+                        mostrarPerfil -> PerfilScreen(onBack = { mostrarPerfil = false })
+                        mostrarEntrenadores -> EntrenadoresScreen()
+                        mostrarAdopciones -> AdopcionesScreen()
+                        mostrarGestionarServicios -> GestionarServiciosScreen(
+                            onBack = { mostrarGestionarServicios = false }
+                        )
+                        mostrarForo -> ForumScreen(onBack = { mostrarForo = false })
+                        mostrarPedidos -> PedidosScreen(onBack = { mostrarPedidos = false })
 
-                    else -> when (selectedTab) {
-                        0 -> HomeScreen()
-                        1 -> TiendaScreen(
-                            carrito = carrito,
-                            onAgregar = { product ->
-                                val existente = carrito.find { it.product.id == product.id }
-                                if (existente != null) {
-                                    carrito[carrito.indexOf(existente)] =
-                                        existente.copy(cantidad = existente.cantidad + 1)
-                                } else {
-                                    carrito.add(CarritoItem(product, 1))
+                        else -> when (selectedTab) {
+                            0 -> HomeScreen()
+                            1 -> TiendaScreen(
+                                carrito = carrito,
+                                onAgregar = { product ->
+                                    val existente = carrito.find { it.product.id == product.id }
+                                    if (existente != null) {
+                                        carrito[carrito.indexOf(existente)] =
+                                            existente.copy(cantidad = existente.cantidad + 1)
+                                    } else {
+                                        carrito.add(CarritoItem(product, 1))
+                                    }
                                 }
-                            }
-                        )
-                        2 -> VeterinariasScreen()
-                        3 -> MasOpcionesScreen(
-                            onNavigateToPerfil = { mostrarPerfil = true },
-                            onNavigateToEntrenadores = { mostrarEntrenadores = true },
-                            onNavigateToAdopciones = { mostrarAdopciones = true },
-                            onNavigateToGestionarServicios = { mostrarGestionarServicios = true },
-                            onNavigateToForo = { mostrarForo = true },
-                            onNavigateToPedidos = { mostrarPedidos = true }
-                        )
+                            )
+                            2 -> VeterinariasScreen()
+                            3 -> MasOpcionesScreen(
+                                onNavigateToPerfil = { mostrarPerfil = true },
+                                onNavigateToEntrenadores = { mostrarEntrenadores = true },
+                                onNavigateToAdopciones = { mostrarAdopciones = true },
+                                onNavigateToGestionarServicios = { mostrarGestionarServicios = true },
+                                onNavigateToForo = { mostrarForo = true },
+                                onNavigateToPedidos = { mostrarPedidos = true }
+                            )
+                        }
                     }
                 }
             }
-        }
+        )
 
         // ======= NAVBAR FLOTANTE ABAJO =======
         Box(
@@ -293,9 +315,3 @@ fun PetApp() {
         }
     }
 }
-
-// Data class simplificada para Pedido
-data class Pedido(
-    val productos: List<CarritoItem>,
-    val total: Double
-)

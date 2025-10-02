@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlin.collections.filter
 
 class OrderViewModel : ViewModel() {
     private val _orders = MutableStateFlow<List<Orders>>(emptyList())
@@ -67,7 +66,7 @@ class OrderViewModel : ViewModel() {
         return _orderItems.value.filter { it.order_id == orderId }
     }
 
-    fun createOrder(orderRequest: com.example.primerproyecto.data.Apiservice.OrderRequest) {
+    fun createOrder(orderRequest: Orders) { // ✅ Ya no necesita el path completo
         viewModelScope.launch {
             try {
                 val response = RetrofitService.apiService.createOrder(orderRequest)
