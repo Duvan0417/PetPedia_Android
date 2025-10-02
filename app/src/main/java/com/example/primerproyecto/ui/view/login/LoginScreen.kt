@@ -39,7 +39,7 @@ fun LoginScreen(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    listOf(Color(0xFF6C28D0), Color(0xFF9D4EDD))
+                    listOf(Color(0xFFEFC16A), Color(0xFFEFB064))
                 )
             ),
         contentAlignment = Alignment.Center
@@ -69,9 +69,9 @@ fun LoginScreen(
                 // Nombre
                 Text(
                     text = "PetPedia",
-                    fontSize = 28.sp,
+                    fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF6C28D0)
+                    color = Color(0xFFC58810)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -123,7 +123,7 @@ fun LoginScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFC16A))
                 ) {
                     Text("Entrar", color = Color.White, fontSize = 16.sp)
                 }
@@ -134,7 +134,7 @@ fun LoginScreen(
                     onClick = { onGuestLogin() },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF6C28D0))
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEFC16A))
                 ) {
                     Text("Ingresar como invitado", fontSize = 15.sp)
                 }
@@ -157,7 +157,7 @@ fun LoginScreen(
 
                 Text(
                     "¿No tienes cuenta? Regístrate",
-                    color = Color(0xFF6C28D0),
+                    color = Color(0xFFEFC16A),
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clickable { onGoToRegister() }
                 )

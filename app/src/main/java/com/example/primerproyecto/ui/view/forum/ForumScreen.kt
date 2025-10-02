@@ -31,7 +31,7 @@ import coil.request.ImageRequest
 import java.util.UUID
 
 // Colores foro - Mejorados
-val PurplePrimary = Color(0xFF4F46E5)
+val PurplePrimary = Color(0xFFEFC16A)
 val PurpleLight = Color(0xFF6366F1)
 val PurpleDark = Color(0xFF3730A3)
 val BackgroundLight = Color(0xFFF8FAFC)

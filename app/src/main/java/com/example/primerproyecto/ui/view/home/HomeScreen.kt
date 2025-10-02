@@ -32,9 +32,9 @@ import com.example.primerproyecto.R
 
 // Paleta de colores mejorada
 object PetPediaColors {
-    val Primary = Color(0xFF6366F1)
-    val PrimaryDark = Color(0xFF4F46E5)
-    val Secondary = Color(0xFF8B5CF6)
+    val Primary = Color(0xFFEFC16A)
+    val PrimaryDark = Color(0xFFEFC16A)
+    val Secondary = Color(0xFFEFB064)
     val Accent = Color(0xFF06B6D4)
     val Background = Color(0xFFF8FAFC)
     val Surface = Color(0xFFFFFFFF)

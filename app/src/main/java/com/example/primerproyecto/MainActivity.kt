@@ -39,8 +39,8 @@ import com.example.primerproyecto.ui.view.veterinarias.VeterinariasScreen
 fun PetAppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = lightColorScheme(
-            primary = Color(0xFF6C28D0),
-            secondary = Color(0xFF03DAC6),
+            primary = Color(0xFFFFA520), // ¡Este es el color naranja/coral!
+            secondary = Color(0xFF3F3DAC),
             background = Color(0xFFF5F5F5)
         ),
         content = content
