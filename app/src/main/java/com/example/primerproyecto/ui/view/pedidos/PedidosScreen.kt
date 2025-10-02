@@ -53,7 +53,7 @@ fun PedidosScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF6C28D0),
+                    containerColor = Color(0xFFEFC16A),
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -69,7 +69,7 @@ fun PedidosScreen(
                         .background(Color(0xFFF7F7F7)),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF6C28D0))
+                    CircularProgressIndicator(color = Color(0xFFEFC16A))
                 }
             }
 
@@ -104,7 +104,7 @@ fun PedidosScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { viewModel.loadOrders() },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63))
                         ) {
                             Text("Reintentar")
                         }
@@ -270,7 +270,7 @@ fun OrderCard(
                         Text(
                             "+ ${orderItems.size - 3} productos más...",
                             fontSize = 12.sp,
-                            color = Color(0xFF6C28D0),
+                            color = Color(0xFFE91E63),
                             fontWeight = FontWeight.Medium
                         )
                     }

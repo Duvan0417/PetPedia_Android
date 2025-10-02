@@ -189,7 +189,7 @@ fun PerfilScreen(onBack: () -> Unit) {
                         isEditing = !isEditing
                     },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFC16A))
                 ) {
                     Text(if (isEditing) "Guardar" else "Editar", color = Color.White)
                 }

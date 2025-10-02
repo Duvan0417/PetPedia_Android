@@ -347,7 +347,8 @@ private fun WelcomeSection() {
                     text = "Tu mascota merece lo mejor",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = PetPediaColors.OnSurface
+                    // COLOR ROSADO BRILLANTE: #e91e63 (0xFFE91E63)
+                    color = Color(0xFFE91E63)
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
@@ -380,6 +381,7 @@ private fun QuickCategoriesSection() {
             fontWeight = FontWeight.Bold,
             color = PetPediaColors.OnSurface,
             modifier = Modifier.padding(bottom = 16.dp)
+
         )
 
         LazyRow(

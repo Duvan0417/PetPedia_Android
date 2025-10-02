@@ -99,7 +99,7 @@ fun TiendaScreen(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = Color(0xFF6C28D0))
+                    CircularProgressIndicator(color = Color(0xFFEFC16A))
                 }
             }
 
@@ -276,7 +276,7 @@ fun ProductoCardAPI(producto: Products, onAgregar: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = onAgregar,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFC16A))
             ) {
                 Text("Agregar", color = Color.White)
             }

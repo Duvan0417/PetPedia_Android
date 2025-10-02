@@ -82,7 +82,7 @@ fun GestionarServiciosScreen(onBack: () -> Unit) {
         // Header con gradiente
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = Color(0xFF6C28D0),
+            color = Color(0xFFEFC16A),
             shadowElevation = 4.dp
         ) {
             Column(
@@ -213,7 +213,7 @@ fun GestionarServiciosScreen(onBack: () -> Unit) {
                 showDialog = true
             },
             modifier = Modifier.padding(16.dp),
-            containerColor = Color(0xFF6C28D0),
+            containerColor = Color(0xFFEFC16A),
             contentColor = Color.White
         )
     }
@@ -470,7 +470,7 @@ fun ServicioCard(
                     Button(
                         onClick = onEdit,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFC16A))
                     ) {
                         Icon(
                             Icons.Default.Edit,
@@ -535,7 +535,7 @@ fun ServicioDialog(
                         )
                     )
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFC16A))
             ) {
                 Text("Guardar", color = Color.White)
             }
