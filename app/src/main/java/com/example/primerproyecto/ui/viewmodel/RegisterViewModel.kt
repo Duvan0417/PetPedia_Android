@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class RegisterViewModel : ViewModel() {
 
@@ -27,6 +28,7 @@ class RegisterViewModel : ViewModel() {
     fun registerUser(registerRequest: RegisterRequest) {
         _isLoading.value = true
         _errorMessage.value = null
+        _registerResponse.value = null
 
         viewModelScope.launch {
             try {
@@ -36,20 +38,47 @@ class RegisterViewModel : ViewModel() {
                     val registerResponse = response.body()
                     if (registerResponse?.success == true) {
                         _registerResponse.value = registerResponse
+                        _errorMessage.value = null
                     } else {
-                        _errorMessage.value = registerResponse?.message ?: "Error desconocido"
+                        val errorMsg = registerResponse?.message ?: "Error desconocido en el registro"
+                        _errorMessage.value = errorMsg
+                        _registerResponse.value = null
                     }
                 } else {
                     val errorMessage = try {
                         val errorBody = response.errorBody()?.string()
-                        errorBody ?: "Error en el servidor (${response.code()})"
+                        // Intentar parsear el JSON de error
+                        if (errorBody?.contains("errors") == true) {
+                            // Extraer mensajes de validación del backend
+                            val errorJson = JSONObject(errorBody)
+                            val errors = errorJson.optJSONObject("errors")
+                            if (errors != null) {
+                                val firstError = errors.keys().asSequence().firstOrNull()
+                                if (firstError != null) {
+                                    val errorArray = errors.getJSONArray(firstError)
+                                    if (errorArray.length() > 0) {
+                                        "${firstError.replace("_", " ").capitalize()}: ${errorArray.getString(0)}"
+                                    } else {
+                                        "Error de validación en $firstError"
+                                    }
+                                } else {
+                                    errorJson.getString("message") ?: "Error de validación"
+                                }
+                            } else {
+                                errorJson.getString("message") ?: "Error en el servidor (${response.code()})"
+                            }
+                        } else {
+                            errorBody ?: "Error en el servidor (${response.code()})"
+                        }
                     } catch (e: Exception) {
                         "Error de conexión: ${e.message}"
                     }
                     _errorMessage.value = errorMessage
+                    _registerResponse.value = null
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error de conexión: ${e.message}"
+                _registerResponse.value = null
             } finally {
                 _isLoading.value = false
             }
@@ -59,6 +88,14 @@ class RegisterViewModel : ViewModel() {
     fun resetState() {
         _isLoading.value = false
         _errorMessage.value = null
+        _registerResponse.value = null
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
+
+    fun clearRegisterResponse() {
         _registerResponse.value = null
     }
 }

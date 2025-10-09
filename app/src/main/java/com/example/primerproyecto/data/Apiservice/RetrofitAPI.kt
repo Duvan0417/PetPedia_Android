@@ -15,9 +15,9 @@ interface RetrofitAPI {
 
     @POST("auth/login")
     suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
-
+    
     @GET("auth/roles")
-    suspend fun getRoles(): Response<Role>
+    suspend fun getRoles(): Response<List<Role>>
 
     @GET("auth/me")
     suspend fun getCurrentUser(): Response<User>

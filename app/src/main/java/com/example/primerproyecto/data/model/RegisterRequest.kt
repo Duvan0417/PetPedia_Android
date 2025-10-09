@@ -24,6 +24,9 @@ data class RegisterRequest(
     @SerializedName("address")
     val address: String,
 
+    @SerializedName("biography")
+    val biography: String? = null,  // ✅ Ahora puede ser null gracias al backend
+
     @SerializedName("clinic_name")
     val clinic_name: String? = null,
 

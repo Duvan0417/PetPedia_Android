@@ -37,17 +37,16 @@ fun RegisterScreen(
 
     val context = LocalContext.current
 
-    // Mapeo de roles visuales a role_id
+    // ✅ CORREGIDO: Mapeo correcto según el backend PHP
     val roleMapping = mapOf(
-        "Veterinario" to 1,
-        "Usuario" to 2,
-        "Refugio" to 3,
-        "Entrenador" to 4
+        "Cliente" to 1,
+        "Veterinaria" to 2,
+        "Entrenador" to 3,
+        "Refugio" to 4
+    )
 
-        )
-
-    val roles = listOf("Veterinario", "Usuario", "Refugio", "Entrenador")
-    var selectedRole by remember { mutableStateOf("Usuario") }
+    val roles = listOf("Cliente", "Veterinaria", "Entrenador", "Refugio")
+    var selectedRole by remember { mutableStateOf("Cliente") }
     var expanded by remember { mutableStateOf(false) }
 
     var nombre by remember { mutableStateOf("") }
@@ -55,6 +54,7 @@ fun RegisterScreen(
     var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
+    var biografia by remember { mutableStateOf("") } // ✅ Ahora es opcional
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var localErrorMessage by remember { mutableStateOf("") }
@@ -74,11 +74,15 @@ fun RegisterScreen(
     // Manejar respuesta del registro
     LaunchedEffect(registerResponse) {
         registerResponse?.let { response ->
-            val token = response.token
-            if (token != null) {
-                onRegisterSuccess(token)
+            if (response.success) {
+                val token = response.token
+                if (token != null) {
+                    onRegisterSuccess(token)
+                } else {
+                    localErrorMessage = response.message ?: "Token no recibido del servidor"
+                }
             } else {
-                localErrorMessage = "Token no recibido del servidor"
+                localErrorMessage = response.message ?: "Error en el registro"
             }
         }
     }
@@ -169,7 +173,7 @@ fun RegisterScreen(
                                     onClick = {
                                         selectedRole = role
                                         expanded = false
-                                        // ✅ CORREGIDO: Limpiar campos específicos al cambiar rol
+                                        // ✅ Limpiar campos específicos al cambiar rol
                                         nombreClinica = ""
                                         licenciaVeterinaria = ""
                                         especializacion = ""
@@ -191,17 +195,17 @@ fun RegisterScreen(
                         OutlinedTextField(
                             value = nombre,
                             onValueChange = { nombre = it },
-                            label = { Text("Nombre") },
+                            label = { Text("Nombre *") },
                             leadingIcon = { Icon(Icons.Default.Person, null) },
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        if (selectedRole == "Usuario") {
+                        if (selectedRole == "Cliente") {
                             Spacer(modifier = Modifier.height(8.dp))
                             OutlinedTextField(
                                 value = apellido,
                                 onValueChange = { apellido = it },
-                                label = { Text("Apellido") },
+                                label = { Text("Apellido *") },
                                 leadingIcon = { Icon(Icons.Default.PersonOutline, null) },
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -211,7 +215,7 @@ fun RegisterScreen(
                         OutlinedTextField(
                             value = telefono,
                             onValueChange = { telefono = it },
-                            label = { Text("Teléfono") },
+                            label = { Text("Teléfono *") },
                             leadingIcon = { Icon(Icons.Default.Phone, null) },
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -220,7 +224,7 @@ fun RegisterScreen(
                         OutlinedTextField(
                             value = correo,
                             onValueChange = { correo = it },
-                            label = { Text("Correo electrónico") },
+                            label = { Text("Correo electrónico *") },
                             leadingIcon = { Icon(Icons.Default.Email, null) },
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -229,19 +233,30 @@ fun RegisterScreen(
                         OutlinedTextField(
                             value = direccion,
                             onValueChange = { direccion = it },
-                            label = { Text("Dirección") },
+                            label = { Text("Dirección *") },
                             leadingIcon = { Icon(Icons.Default.Home, null) },
                             modifier = Modifier.fillMaxWidth()
                         )
 
+                        // ✅ Biografía como campo OPCIONAL
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = biografia,
+                            onValueChange = { biografia = it },
+                            label = { Text("Biografía (opcional)") },
+                            leadingIcon = { Icon(Icons.Default.Description, null) },
+                            modifier = Modifier.fillMaxWidth(),
+                            maxLines = 3
+                        )
+
                         // Campos específicos por rol
                         when (selectedRole) {
-                            "Veterinario" -> {
+                            "Veterinaria" -> {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 OutlinedTextField(
                                     value = nombreClinica,
                                     onValueChange = { nombreClinica = it },
-                                    label = { Text("Nombre de la Clínica") },
+                                    label = { Text("Nombre de la Clínica *") },
                                     leadingIcon = { Icon(Icons.Default.Business, null) },
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -249,7 +264,7 @@ fun RegisterScreen(
                                 OutlinedTextField(
                                     value = licenciaVeterinaria,
                                     onValueChange = { licenciaVeterinaria = it },
-                                    label = { Text("Licencia Veterinaria") },
+                                    label = { Text("Licencia Veterinaria *") },
                                     leadingIcon = { Icon(Icons.Default.Badge, null) },
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -257,7 +272,7 @@ fun RegisterScreen(
                                 OutlinedTextField(
                                     value = especializacion,
                                     onValueChange = { especializacion = it },
-                                    label = { Text("Especialización") },
+                                    label = { Text("Especialización *") },
                                     leadingIcon = { Icon(Icons.Default.School, null) },
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -267,7 +282,7 @@ fun RegisterScreen(
                                 OutlinedTextField(
                                     value = especialidad,
                                     onValueChange = { especialidad = it },
-                                    label = { Text("Especialidad") },
+                                    label = { Text("Especialidad *") },
                                     leadingIcon = { Icon(Icons.Default.Sports, null) },
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -275,7 +290,7 @@ fun RegisterScreen(
                                 OutlinedTextField(
                                     value = anosExperiencia,
                                     onValueChange = { anosExperiencia = it },
-                                    label = { Text("Años de Experiencia") },
+                                    label = { Text("Años de Experiencia *") },
                                     leadingIcon = { Icon(Icons.Default.Work, null) },
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -283,15 +298,16 @@ fun RegisterScreen(
                                 OutlinedTextField(
                                     value = cualificaciones,
                                     onValueChange = { cualificaciones = it },
-                                    label = { Text("Cualificaciones") },
+                                    label = { Text("Cualificaciones *") },
                                     leadingIcon = { Icon(Icons.Default.School, null) },
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    maxLines = 3
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 OutlinedTextField(
                                     value = tarifaHora,
                                     onValueChange = { tarifaHora = it },
-                                    label = { Text("Tarifa por Hora") },
+                                    label = { Text("Tarifa por Hora *") },
                                     leadingIcon = { Icon(Icons.Default.AttachMoney, null) },
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -301,7 +317,7 @@ fun RegisterScreen(
                                 OutlinedTextField(
                                     value = nombreRefugio,
                                     onValueChange = { nombreRefugio = it },
-                                    label = { Text("Nombre del Refugio") },
+                                    label = { Text("Nombre del Refugio *") },
                                     leadingIcon = { Icon(Icons.Default.Business, null) },
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -309,7 +325,7 @@ fun RegisterScreen(
                                 OutlinedTextField(
                                     value = personaResponsable,
                                     onValueChange = { personaResponsable = it },
-                                    label = { Text("Persona Responsable") },
+                                    label = { Text("Persona Responsable *") },
                                     leadingIcon = { Icon(Icons.Default.Person, null) },
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -317,7 +333,7 @@ fun RegisterScreen(
                                 OutlinedTextField(
                                     value = capacidad,
                                     onValueChange = { capacidad = it },
-                                    label = { Text("Capacidad") },
+                                    label = { Text("Capacidad *") },
                                     leadingIcon = { Icon(Icons.Default.Home, null) },
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -329,7 +345,7 @@ fun RegisterScreen(
                         OutlinedTextField(
                             value = password,
                             onValueChange = { password = it },
-                            label = { Text("Contraseña") },
+                            label = { Text("Contraseña *") },
                             leadingIcon = { Icon(Icons.Default.Lock, null) },
                             visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth()
@@ -339,7 +355,7 @@ fun RegisterScreen(
                         OutlinedTextField(
                             value = confirmPassword,
                             onValueChange = { confirmPassword = it },
-                            label = { Text("Confirmar Contraseña") },
+                            label = { Text("Confirmar Contraseña *") },
                             leadingIcon = { Icon(Icons.Default.Lock, null) },
                             visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth()
@@ -359,10 +375,10 @@ fun RegisterScreen(
 
                         Button(
                             onClick = {
-                                // Validaciones
+                                // Validaciones básicas
                                 if (nombre.isBlank() || correo.isBlank() || password.isBlank() || confirmPassword.isBlank() ||
                                     telefono.isBlank() || direccion.isBlank()) {
-                                    localErrorMessage = "Por favor completa todos los campos obligatorios"
+                                    localErrorMessage = "Por favor completa todos los campos obligatorios (*)"
                                     return@Button
                                 }
                                 if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
@@ -378,10 +394,45 @@ fun RegisterScreen(
                                     return@Button
                                 }
 
+                                // Validaciones específicas por rol
+                                when (selectedRole) {
+                                    "Veterinaria" -> {
+                                        if (nombreClinica.isBlank() || licenciaVeterinaria.isBlank() || especializacion.isBlank()) {
+                                            localErrorMessage = "Por favor completa todos los campos requeridos para Veterinaria"
+                                            return@Button
+                                        }
+                                    }
+                                    "Entrenador" -> {
+                                        if (especialidad.isBlank() || anosExperiencia.isBlank() ||
+                                            cualificaciones.isBlank() || tarifaHora.isBlank()) {
+                                            localErrorMessage = "Por favor completa todos los campos requeridos para Entrenador"
+                                            return@Button
+                                        }
+                                        if (anosExperiencia.toIntOrNull() == null) {
+                                            localErrorMessage = "Años de experiencia debe ser un número válido"
+                                            return@Button
+                                        }
+                                        if (tarifaHora.toDoubleOrNull() == null) {
+                                            localErrorMessage = "Tarifa por hora debe ser un número válido"
+                                            return@Button
+                                        }
+                                    }
+                                    "Refugio" -> {
+                                        if (nombreRefugio.isBlank() || personaResponsable.isBlank() || capacidad.isBlank()) {
+                                            localErrorMessage = "Por favor completa todos los campos requeridos para Refugio"
+                                            return@Button
+                                        }
+                                        if (capacidad.toIntOrNull() == null) {
+                                            localErrorMessage = "Capacidad debe ser un número válido"
+                                            return@Button
+                                        }
+                                    }
+                                }
+
                                 localErrorMessage = ""
 
-                                val roleId = roleMapping[selectedRole] ?: 3
-                                val fullName = if (selectedRole == "Usuario") "$nombre $apellido" else nombre
+                                val roleId = roleMapping[selectedRole] ?: 1
+                                val fullName = if (selectedRole == "Cliente") "$nombre $apellido" else nombre
 
                                 val registerRequest = RegisterRequest(
                                     name = fullName,
@@ -391,9 +442,10 @@ fun RegisterScreen(
                                     role_id = roleId,
                                     phone = telefono,
                                     address = direccion,
-                                    clinic_name = if (selectedRole == "Veterinario") nombreClinica else null,
-                                    veterinary_license = if (selectedRole == "Veterinario") licenciaVeterinaria else null,
-                                    specialization = if (selectedRole == "Veterinario") especializacion else null,
+                                    biography = biografia.ifEmpty { null }, // ✅ Envía null si está vacío
+                                    clinic_name = if (selectedRole == "Veterinaria") nombreClinica else null,
+                                    veterinary_license = if (selectedRole == "Veterinaria") licenciaVeterinaria else null,
+                                    specialization = if (selectedRole == "Veterinaria") especializacion else null,
                                     specialty = if (selectedRole == "Entrenador") especialidad else null,
                                     experience_years = if (selectedRole == "Entrenador") anosExperiencia.toIntOrNull() ?: 0 else null,
                                     qualifications = if (selectedRole == "Entrenador") cualificaciones else null,

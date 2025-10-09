@@ -1,5 +1,5 @@
 [versions]
-agp = "8.12.3"                    # ✅ Actualizado
+agp = "8.9.1"                    # ✅ Actualizado
 kotlin = "2.0.21"                 # ✅ Mantener
 coreKtx = "1.13.1"                # ✅ Actualizado  
 junit = "4.13.2"                  # ✅ Mantener

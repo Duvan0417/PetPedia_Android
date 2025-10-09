@@ -45,11 +45,15 @@ fun LoginScreen(
     // Manejar respuesta del login
     LaunchedEffect(loginResponse) {
         loginResponse?.let { response ->
-            val token = response.token
-            if (token != null) {
-                onLoginSuccess(token)
+            if (response.success) {
+                val token = response.token
+                if (token != null) {
+                    onLoginSuccess(token)
+                } else {
+                    localErrorMessage = response.message ?: "Token no recibido del servidor"
+                }
             } else {
-                localErrorMessage = "Token no recibido del servidor"
+                localErrorMessage = response.message ?: "Error en el login"
             }
         }
     }
@@ -58,6 +62,14 @@ fun LoginScreen(
     LaunchedEffect(errorMessage) {
         errorMessage?.let { message ->
             localErrorMessage = message
+        }
+    }
+
+    // Limpiar errores cuando el usuario empiece a escribir
+    LaunchedEffect(email, password) {
+        if (localErrorMessage.isNotEmpty()) {
+            localErrorMessage = ""
+            viewModel.clearErrorMessage()
         }
     }
 
@@ -112,96 +124,172 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        CircularProgressIndicator(modifier = Modifier.size(48.dp))
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(48.dp),
+                            color = Color(0xFF6C28D0)
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text("Iniciando sesión...", color = Color.Gray)
                     }
                 } else {
+                    // Campo de email
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
                         label = { Text("Correo electrónico") },
-                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Email,
+                                contentDescription = "Email",
+                                tint = Color(0xFF6C28D0)
+                            )
+                        },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = localErrorMessage.isNotEmpty()
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Campo de contraseña
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
                         label = { Text("Contraseña") },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Lock,
+                                contentDescription = "Contraseña",
+                                tint = Color(0xFF6C28D0)
+                            )
+                        },
                         visualTransformation = PasswordVisualTransformation(),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = localErrorMessage.isNotEmpty()
                     )
 
+                    // Mostrar mensaje de error
                     if (localErrorMessage.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(localErrorMessage, color = Color.Red, fontSize = 14.sp)
+                        Text(
+                            text = localErrorMessage,
+                            color = Color.Red,
+                            fontSize = 14.sp,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    // Botón de login
                     Button(
                         onClick = {
-                            if (email.isBlank() || password.isBlank()) {
-                                localErrorMessage = "Por favor completa todos los campos"
-                            } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                                localErrorMessage = "Correo inválido"
-                            } else {
-                                localErrorMessage = ""
-                                val loginRequest = LoginRequest(
-                                    email = email,
-                                    password = password
-                                )
-                                viewModel.loginUser(loginRequest)
+                            when {
+                                email.isBlank() || password.isBlank() -> {
+                                    localErrorMessage = "Por favor completa todos los campos"
+                                }
+                                !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                                    localErrorMessage = "Por favor ingresa un correo electrónico válido"
+                                }
+                                password.length < 6 -> {
+                                    localErrorMessage = "La contraseña debe tener al menos 6 caracteres"
+                                }
+                                else -> {
+                                    localErrorMessage = ""
+                                    val loginRequest = LoginRequest(
+                                        email = email.trim(),
+                                        password = password
+                                    )
+                                    viewModel.loginUser(loginRequest)
+                                }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF6C28D0)
+                        ),
+                        enabled = !isLoading
                     ) {
-                        Text("Entrar", color = Color.White, fontSize = 16.sp)
+                        Text(
+                            "Iniciar Sesión",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Botón de invitado
                     OutlinedButton(
                         onClick = { onGuestLogin() },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF6C28D0))
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF6C28D0)
+                        ),
+                        enabled = !isLoading
                     ) {
-                        Text("Ingresar como invitado", fontSize = 15.sp)
+                        Text(
+                            "Ingresar como invitado",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(18.dp))
+
+                    // Separador
                     Text("O inicia con", color = Color.Gray, fontSize = 14.sp)
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Botones sociales
                     Row(
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        SocialButton(R.drawable.google)
-                        SocialButton(R.drawable.facebook)
-                        SocialButton(R.drawable.x)
+                        SocialButton(R.drawable.google) {
+                            // Acción para Google
+                            localErrorMessage = "Login con Google - Próximamente"
+                        }
+                        SocialButton(R.drawable.facebook) {
+                            // Acción para Facebook
+                            localErrorMessage = "Login con Facebook - Próximamente"
+                        }
+                        SocialButton(R.drawable.x) {
+                            // Acción para X
+                            localErrorMessage = "Login con X - Próximamente"
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    Text(
-                        "¿No tienes cuenta? Regístrate",
-                        color = Color(0xFF6C28D0),
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clickable { onGoToRegister() }
-                    )
+                    // Enlace a registro
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("¿No tienes cuenta? ", color = Color.Gray)
+                        Text(
+                            "Regístrate",
+                            color = Color(0xFF6C28D0),
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable {
+                                if (!isLoading) {
+                                    onGoToRegister()
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -209,18 +297,21 @@ fun LoginScreen(
 }
 
 @Composable
-fun SocialButton(logoResId: Int) {
+fun SocialButton(
+    logoResId: Int,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .size(50.dp)
             .clip(CircleShape)
             .background(Color(0xFFF5F5F5))
-            .clickable { /* Acción social */ },
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Image(
             painter = painterResource(id = logoResId),
-            contentDescription = null,
+            contentDescription = "Social login",
             modifier = Modifier.size(26.dp)
         )
     }
