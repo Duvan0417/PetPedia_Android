@@ -2,12 +2,12 @@ package com.example.primerproyecto.ui.view.veterinarias
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -30,11 +30,12 @@ import coil.request.ImageRequest
 import com.example.primerproyecto.R
 import com.example.primerproyecto.data.model.Veterinarian
 import com.example.primerproyecto.ui.viewmodel.VeterinarianViewModel
-import org.json.JSONArray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VeterinariasScreen() {
+fun VeterinariasScreen(
+    modifier: Modifier = Modifier
+) {
     val viewModel: VeterinarianViewModel = viewModel()
     val veterinarians by viewModel.veterinarians.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -49,9 +50,10 @@ fun VeterinariasScreen() {
     val mascotas = listOf("Firulais", "Michi", "Max")
 
     val filtradas = veterinarians.filter { vet ->
-        vet.name.contains(searchQuery, ignoreCase = true) ||
-                vet.email.contains(searchQuery, ignoreCase = true) ||
-                vet.address.contains(searchQuery, ignoreCase = true)
+        vet.getClinicName().contains(searchQuery, ignoreCase = true) ||
+                (vet.email?.contains(searchQuery, ignoreCase = true) == true) ||
+                (vet.address?.contains(searchQuery, ignoreCase = true) == true) ||
+                (vet.specialization?.contains(searchQuery, ignoreCase = true) == true)
     }
 
     // Manejar errores
@@ -69,14 +71,15 @@ fun VeterinariasScreen() {
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(Color(0xFFF6F6F6))
     ) {
+        // Barra de búsqueda
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("Buscar veterinaria, email o dirección...") },
+            label = { Text("Buscar veterinaria, especialidad, email...") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,12 +102,28 @@ fun VeterinariasScreen() {
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No se encontraron veterinarias", color = Color.Gray)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        Icons.Default.SearchOff,
+                        contentDescription = "Sin resultados",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("No se encontraron veterinarias", color = Color.Gray)
+                    if (searchQuery.isNotEmpty()) {
+                        Text("para: '$searchQuery'", color = Color.Gray, fontSize = 14.sp)
+                    }
+                }
             }
         } else {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
+                    .weight(1f)
                     .padding(horizontal = 12.dp)
             ) {
                 items(filtradas) { vet ->
@@ -132,32 +151,62 @@ fun VeterinariasScreen() {
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Text(
-                        text = veterinariaSeleccionada!!.name,
+                        text = veterinariaSeleccionada!!.getClinicName(),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     )
 
+                    // Especialización
+                    veterinariaSeleccionada!!.specialization?.let { specialization ->
+                        Text(
+                            text = "🎯 $specialization",
+                            fontSize = 14.sp,
+                            color = Color(0xFF6C28D0),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    // Licencia veterinaria
+                    veterinariaSeleccionada!!.veterinary_license?.let { license ->
+                        Text(
+                            text = "📋 Licencia: $license",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
+
                     // Información de contacto
-                    Text(
-                        text = "📧 ${veterinariaSeleccionada!!.email}",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
+                    veterinariaSeleccionada!!.email?.let { email ->
+                        Text(
+                            text = "📧 $email",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                    }
 
-                    Text(
-                        text = "📞 ${veterinariaSeleccionada!!.phone}",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
+                    veterinariaSeleccionada!!.phone?.let { phone ->
+                        Text(
+                            text = "📞 $phone",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                    }
 
-                    Text(
-                        text = "📍 ${veterinariaSeleccionada!!.address}",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
+                    veterinariaSeleccionada!!.address?.let { address ->
+                        Text(
+                            text = "📍 $address",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                    }
 
                     // ---------------- Servicios disponibles ----------------
                     var servicioSeleccionado by remember {
@@ -278,7 +327,10 @@ fun VeterinariasScreen() {
                 Column {
                     Text("Su cita ha sido solicitada exitosamente")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Veterinaria: ${veterinariaSeleccionada?.name ?: ""}", fontWeight = FontWeight.Bold)
+                    Text("Veterinaria: ${veterinariaSeleccionada?.getClinicName() ?: ""}", fontWeight = FontWeight.Bold)
+                    veterinariaSeleccionada?.specialization?.let { specialization ->
+                        Text("Especialidad: $specialization")
+                    }
                     Text("Pronto será contactado para confirmar la cita")
                 }
             },
@@ -294,7 +346,7 @@ fun VeterinariasScreen() {
     }
 }
 
-// ---------------- Tarjeta Veterinaria actualizada con datos reales ----------------
+// ---------------- Tarjeta Veterinaria actualizada ----------------
 @Composable
 fun VeterinariaCard(vet: Veterinarian, onPedirCita: () -> Unit) {
     Card(
@@ -312,10 +364,8 @@ fun VeterinariaCard(vet: Veterinarian, onPedirCita: () -> Unit) {
                     .height(180.dp)
             ) {
                 val imageUrl = if (vet.image.isNullOrEmpty()) {
-                    // Imagen por defecto si no hay imagen
                     null
                 } else {
-                    // Si la imagen es una URL completa o una ruta relativa
                     if (vet.image!!.startsWith("http")) {
                         vet.image
                     } else {
@@ -334,29 +384,39 @@ fun VeterinariaCard(vet: Veterinarian, onPedirCita: () -> Unit) {
 
                 Image(
                     painter = painter,
-                    contentDescription = vet.name,
+                    contentDescription = vet.getClinicName(),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                 )
 
-                // Badge de información
-                Surface(
-                    tonalElevation = 6.dp,
-                    shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFF6C28D0),
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(10.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                // Badge de especialización
+                vet.specialization?.let { specialization ->
+                    Surface(
+                        tonalElevation = 6.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF6C28D0),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(10.dp)
                     ) {
-                        Icon(Icons.Default.MedicalServices, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(text = "Veterinaria", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.MedicalServices, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = specialization,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = 120.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -364,7 +424,7 @@ fun VeterinariaCard(vet: Veterinarian, onPedirCita: () -> Unit) {
             // Contenido
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    text = vet.name,
+                    text = vet.getClinicName(),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -372,29 +432,43 @@ fun VeterinariaCard(vet: Veterinarian, onPedirCita: () -> Unit) {
                     overflow = TextOverflow.Ellipsis
                 )
 
+                // Licencia veterinaria
+                vet.veterinary_license?.let { license ->
+                    Text(
+                        text = "Licencia: $license",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Información de contacto
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Email, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(vet.email, color = Color.Gray, fontSize = 13.sp)
+                vet.email?.let { email ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Email, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(email, color = Color.Gray, fontSize = 13.sp)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Phone, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(vet.phone, color = Color.Gray, fontSize = 13.sp)
+                vet.phone?.let { phone ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Phone, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(phone, color = Color.Gray, fontSize = 13.sp)
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(vet.address, color = Color.Gray, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                vet.address?.let { address ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(address, color = Color.Gray, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

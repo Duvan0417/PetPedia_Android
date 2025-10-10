@@ -1,3 +1,4 @@
+
 package com.example.primerproyecto.ui.view.login
 
 import android.util.Patterns
@@ -29,7 +30,7 @@ import com.example.primerproyecto.ui.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (String) -> Unit,
+    onLoginSuccess: (String, String) -> Unit, // ✅ CAMBIO: Ahora recibe token y rol
     onGoToRegister: () -> Unit,
     onGuestLogin: () -> Unit
 ) {
@@ -47,8 +48,10 @@ fun LoginScreen(
         loginResponse?.let { response ->
             if (response.success) {
                 val token = response.token
+                val role = response.role ?: "client" // ✅ Obtener el rol o usar "client" por defecto
+
                 if (token != null) {
-                    onLoginSuccess(token)
+                    onLoginSuccess(token, role) // ✅ Pasar tanto token como rol
                 } else {
                     localErrorMessage = response.message ?: "Token no recibido del servidor"
                 }
@@ -258,15 +261,12 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         SocialButton(R.drawable.google) {
-                            // Acción para Google
                             localErrorMessage = "Login con Google - Próximamente"
                         }
                         SocialButton(R.drawable.facebook) {
-                            // Acción para Facebook
                             localErrorMessage = "Login con Facebook - Próximamente"
                         }
                         SocialButton(R.drawable.x) {
-                            // Acción para X
                             localErrorMessage = "Login con X - Próximamente"
                         }
                     }

@@ -1,3 +1,4 @@
+
 package com.example.primerproyecto
 
 import android.os.Bundle
@@ -23,6 +24,9 @@ import com.example.primerproyecto.data.Apiservice.RetrofitService
 import com.example.primerproyecto.data.model.Products
 import com.example.primerproyecto.ui.components.CarritoDialog
 import com.example.primerproyecto.ui.screens.HomeScreen
+import com.example.primerproyecto.ui.view.UserEntrenador.UserEntrenadorScreen
+import com.example.primerproyecto.ui.view.UserRefugio.UserRefugioScreen
+import com.example.primerproyecto.ui.view.UserVeterinario.UserVeterinarioScreen
 import com.example.primerproyecto.ui.view.adopciones.AdopcionesScreen
 import com.example.primerproyecto.ui.view.entrenadores.EntrenadoresScreen
 import com.example.primerproyecto.ui.view.forum.ForumScreen
@@ -58,33 +62,33 @@ class MainActivity : ComponentActivity() {
                 var isLoggedIn by remember { mutableStateOf(false) }
                 var showRegister by remember { mutableStateOf(false) }
                 var authToken by remember { mutableStateOf<String?>(null) }
+                var userRole by remember { mutableStateOf<String?>(null) }
 
                 if (!isLoggedIn) {
                     if (showRegister) {
                         RegisterScreen(
                             onRegisterSuccess = {
-                                // ✅ CAMBIO: Solo regresa al login, no establece isLoggedIn = true
                                 showRegister = false
                             },
                             onGoToLogin = { showRegister = false }
                         )
                     } else {
                         LoginScreen(
-                            onLoginSuccess = { token ->
-                                // Guardar el token y actualizar estado
+                            onLoginSuccess = { token, role -> // ✅ Recibir token y rol
                                 authToken = token
+                                userRole = role
                                 RetrofitService.setAuthToken(token)
                                 isLoggedIn = true
                             },
                             onGoToRegister = { showRegister = true },
                             onGuestLogin = {
-                                // Para guest, no hay token
+                                userRole = "guest"
                                 isLoggedIn = true
                             }
                         )
                     }
                 } else {
-                    PetApp(authToken = authToken)
+                    PetApp(authToken = authToken, userRole = userRole)
                 }
             }
         }
@@ -119,12 +123,28 @@ data class Pedido(
 
 // ======================= MAIN APP =======================
 @Composable
-fun PetApp(authToken: String? = null) {
+fun PetApp(authToken: String? = null, userRole: String? = null) {
+
+    // ✅ DETERMINAR QUÉ INTERFAZ MOSTRAR SEGÚN EL ROL (EN ESPAÑOL E INGLÉS)
+    when {
+        userRole == "veterinarian" || userRole == "Veterinaria" || userRole == "veterinario" ->
+            UserVeterinarioScreen() // ✅ PARA VETERINARIOS
+
+        userRole == "trainer" || userRole == "Entrenador" || userRole == "entrenador" ->
+            UserEntrenadorScreen() // ✅ PARA ENTRENADORES
+
+        userRole == "shelter" || userRole == "Refugio" || userRole == "refugio" ->
+            UserRefugioScreen() // ✅ PARA REFUGIOS
+
+        else -> ClienteApp() // Cliente, guest o cualquier otro
+    }
+}
+
+// ======================= APP PARA CLIENTES =======================
+@Composable
+fun ClienteApp() {
     var selectedTab by remember { mutableStateOf(0) }
-
-    // ✅ UNA SOLA LISTA PARA EL CARRITO
     val carrito = remember { mutableStateListOf<CarritoItem>() }
-
     val pedidos = remember { mutableStateListOf<Pedido>() }
     var mostrarCarrito by remember { mutableStateOf(false) }
 
@@ -135,6 +155,14 @@ fun PetApp(authToken: String? = null) {
     var mostrarGestionarServicios by remember { mutableStateOf(false) }
     var mostrarForo by remember { mutableStateOf(false) }
     var mostrarPedidos by remember { mutableStateOf(false) }
+
+    // Tabs para clientes
+    val tabs = listOf(
+        TabItem("Inicio", Icons.Default.Home),
+        TabItem("Tienda", Icons.Default.ShoppingCart),
+        TabItem("Veterinarias", Icons.Default.LocalHospital),
+        TabItem("Más", Icons.Default.MoreVert)
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -185,7 +213,7 @@ fun PetApp(authToken: String? = null) {
             }
         )
 
-        // ======= NAVBAR FLOTANTE ABAJO =======
+        // ======= NAVBAR FLOTANTE PARA CLIENTES =======
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -204,13 +232,6 @@ fun PetApp(authToken: String? = null) {
                     containerColor = Color.Transparent,
                     tonalElevation = 0.dp
                 ) {
-                    val tabs = listOf(
-                        TabItem("Inicio", Icons.Default.Home),
-                        TabItem("Tienda", Icons.Default.ShoppingCart),
-                        TabItem("Veterinarias", Icons.Default.LocalHospital),
-                        TabItem("Más", Icons.Default.MoreVert)
-                    )
-
                     tabs.forEachIndexed { index, tab ->
                         NavigationBarItem(
                             icon = {
@@ -245,7 +266,7 @@ fun PetApp(authToken: String? = null) {
             }
         }
 
-        // ======= BOTÓN DE CARRITO ENCIMA DEL NAVBAR =======
+        // ======= BOTÓN DE CARRITO PARA CLIENTES =======
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -260,9 +281,7 @@ fun PetApp(authToken: String? = null) {
                 Icon(Icons.Filled.ShoppingCart, contentDescription = "Carrito")
             }
 
-            // ✅ Mostrar contador de productos
             val totalItems = carrito.sumOf { it.cantidad }
-
             if (totalItems > 0) {
                 Box(
                     modifier = Modifier
@@ -281,7 +300,7 @@ fun PetApp(authToken: String? = null) {
             }
         }
 
-        // ======= CARRITO =======
+        // ======= CARRITO PARA CLIENTES =======
         if (mostrarCarrito) {
             CarritoDialog(
                 carrito = carrito,
@@ -294,13 +313,8 @@ fun PetApp(authToken: String? = null) {
                     }
                 },
                 onFinalizarCompra = {
-                    // Calcular el total para guardar en la base de datos
                     val total = carrito.sumOf { it.product.price * it.cantidad }
-
                     if (carrito.isNotEmpty()) {
-                        // Aquí deberías llamar a tu API para guardar el carrito
-                        // shoppingCartRepository.saveShoppingCart(total, carrito)
-
                         pedidos.add(0, Pedido(
                             productos = carrito.toList(),
                             total = total
