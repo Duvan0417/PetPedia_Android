@@ -62,11 +62,9 @@ class MainActivity : ComponentActivity() {
                 if (!isLoggedIn) {
                     if (showRegister) {
                         RegisterScreen(
-                            onRegisterSuccess = { token ->
-                                // Guardar el token y actualizar estado
-                                authToken = token
-                                RetrofitService.setAuthToken(token)
-                                isLoggedIn = true
+                            onRegisterSuccess = {
+                                // ✅ CAMBIO: Solo regresa al login, no establece isLoggedIn = true
+                                showRegister = false
                             },
                             onGoToLogin = { showRegister = false }
                         )

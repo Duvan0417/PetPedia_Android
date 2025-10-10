@@ -27,13 +27,13 @@ import com.example.primerproyecto.ui.viewmodel.RegisterViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    onRegisterSuccess: (String) -> Unit,
+    onRegisterSuccess: () -> Unit,
     onGoToLogin: () -> Unit
 ) {
     val viewModel: RegisterViewModel = viewModel()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val registerResponse by viewModel.registerResponse.collectAsState()
+    val registerSuccess by viewModel.registerSuccess.collectAsState()
 
     val context = LocalContext.current
 
@@ -54,10 +54,11 @@ fun RegisterScreen(
     var telefono by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
-    var biografia by remember { mutableStateOf("") } // ✅ Ahora es opcional
+    var biografia by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var localErrorMessage by remember { mutableStateOf("") }
+    var showSuccessDialog by remember { mutableStateOf(false) }
 
     // ✅ Campos específicos DECLARADOS FUERA del when
     var nombreClinica by remember { mutableStateOf("") }
@@ -71,27 +72,45 @@ fun RegisterScreen(
     var personaResponsable by remember { mutableStateOf("") }
     var capacidad by remember { mutableStateOf("") }
 
-    // Manejar respuesta del registro
-    LaunchedEffect(registerResponse) {
-        registerResponse?.let { response ->
-            if (response.success) {
-                val token = response.token
-                if (token != null) {
-                    onRegisterSuccess(token)
-                } else {
-                    localErrorMessage = response.message ?: "Token no recibido del servidor"
-                }
-            } else {
-                localErrorMessage = response.message ?: "Error en el registro"
-            }
+    // ✅ NUEVO: Manejar éxito del registro
+    LaunchedEffect(registerSuccess) {
+        if (registerSuccess) {
+            showSuccessDialog = true
+            viewModel.resetState()
         }
     }
 
-    // Manejar errores del ViewModel
+    // ✅ NUEVO: Manejar errores del ViewModel
     LaunchedEffect(errorMessage) {
         errorMessage?.let { message ->
             localErrorMessage = message
         }
+    }
+
+    // ✅ NUEVO: Dialog de registro exitoso
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showSuccessDialog = false
+                onGoToLogin()
+            },
+            title = {
+                Text("¡Registro Exitoso!", fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Text("Tu cuenta ha sido creada exitosamente. Ahora puedes iniciar sesión con tus credenciales.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSuccessDialog = false
+                        onGoToLogin()
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            }
+        )
     }
 
     Box(
@@ -442,7 +461,7 @@ fun RegisterScreen(
                                     role_id = roleId,
                                     phone = telefono,
                                     address = direccion,
-                                    biography = biografia.ifEmpty { null }, // ✅ Envía null si está vacío
+                                    biography = biografia.ifEmpty { null },
                                     clinic_name = if (selectedRole == "Veterinaria") nombreClinica else null,
                                     veterinary_license = if (selectedRole == "Veterinaria") licenciaVeterinaria else null,
                                     specialization = if (selectedRole == "Veterinaria") especializacion else null,

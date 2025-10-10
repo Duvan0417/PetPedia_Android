@@ -26,4 +26,6 @@ data class User(
 
     @SerializedName("role")
     val role: Role? = null
+
+
 )

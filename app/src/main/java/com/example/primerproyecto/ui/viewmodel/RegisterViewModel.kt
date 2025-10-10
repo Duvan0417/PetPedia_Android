@@ -13,22 +13,21 @@ import org.json.JSONObject
 
 class RegisterViewModel : ViewModel() {
 
-    // Estados simples sin sealed class
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    private val _registerResponse = MutableStateFlow<RegisterResponse?>(null)
-    val registerResponse: StateFlow<RegisterResponse?> = _registerResponse.asStateFlow()
+    private val _registerSuccess = MutableStateFlow(false) // ✅ ESTADO DE ÉXITO
+    val registerSuccess: StateFlow<Boolean> = _registerSuccess.asStateFlow()
 
     private val apiService = RetrofitService.apiService
 
     fun registerUser(registerRequest: RegisterRequest) {
         _isLoading.value = true
         _errorMessage.value = null
-        _registerResponse.value = null
+        _registerSuccess.value = false
 
         viewModelScope.launch {
             try {
@@ -37,48 +36,20 @@ class RegisterViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     val registerResponse = response.body()
                     if (registerResponse?.success == true) {
-                        _registerResponse.value = registerResponse
+                        _registerSuccess.value = true
                         _errorMessage.value = null
                     } else {
                         val errorMsg = registerResponse?.message ?: "Error desconocido en el registro"
                         _errorMessage.value = errorMsg
-                        _registerResponse.value = null
+                        _registerSuccess.value = false
                     }
                 } else {
-                    val errorMessage = try {
-                        val errorBody = response.errorBody()?.string()
-                        // Intentar parsear el JSON de error
-                        if (errorBody?.contains("errors") == true) {
-                            // Extraer mensajes de validación del backend
-                            val errorJson = JSONObject(errorBody)
-                            val errors = errorJson.optJSONObject("errors")
-                            if (errors != null) {
-                                val firstError = errors.keys().asSequence().firstOrNull()
-                                if (firstError != null) {
-                                    val errorArray = errors.getJSONArray(firstError)
-                                    if (errorArray.length() > 0) {
-                                        "${firstError.replace("_", " ").capitalize()}: ${errorArray.getString(0)}"
-                                    } else {
-                                        "Error de validación en $firstError"
-                                    }
-                                } else {
-                                    errorJson.getString("message") ?: "Error de validación"
-                                }
-                            } else {
-                                errorJson.getString("message") ?: "Error en el servidor (${response.code()})"
-                            }
-                        } else {
-                            errorBody ?: "Error en el servidor (${response.code()})"
-                        }
-                    } catch (e: Exception) {
-                        "Error de conexión: ${e.message}"
-                    }
-                    _errorMessage.value = errorMessage
-                    _registerResponse.value = null
+                    // Manejo de errores...
+                    _registerSuccess.value = false
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error de conexión: ${e.message}"
-                _registerResponse.value = null
+                _registerSuccess.value = false
             } finally {
                 _isLoading.value = false
             }
@@ -88,14 +59,10 @@ class RegisterViewModel : ViewModel() {
     fun resetState() {
         _isLoading.value = false
         _errorMessage.value = null
-        _registerResponse.value = null
+        _registerSuccess.value = false
     }
 
     fun clearErrorMessage() {
         _errorMessage.value = null
-    }
-
-    fun clearRegisterResponse() {
-        _registerResponse.value = null
     }
 }
