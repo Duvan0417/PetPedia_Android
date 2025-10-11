@@ -28,7 +28,8 @@ fun CarritoDialog(
     onCerrar: () -> Unit,
     onEliminar: (CarritoItem) -> Unit,
     onActualizarCantidad: (CarritoItem, Int) -> Unit,
-    onFinalizarCompra: () -> Unit
+    onFinalizarCompra: () -> Unit,
+    isLoading: Boolean = false
 ) {
     var mostrarMetodosPago by remember { mutableStateOf(false) }
     var compraFinalizada by remember { mutableStateOf(false) }
@@ -52,13 +53,21 @@ fun CarritoDialog(
             text = { Text("Tu compra se ha realizado con éxito. Gracias por tu compra.") },
             confirmButton = {
                 Button(
-                    onClick = {
-                        compraFinalizada = false
-                        onCerrar()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
+                    onClick = onFinalizarCompra,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    enabled = !isLoading && carrito.isNotEmpty()
                 ) {
-                    Text("Aceptar")
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Finalizar Compra")
+                    }
                 }
             }
         )

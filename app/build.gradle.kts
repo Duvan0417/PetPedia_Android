@@ -42,10 +42,12 @@ android {
 dependencies {
     // Usando version catalog (libs.*). Asegúrate de que existan en libs.versions.toml
 
+
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
     implementation("androidx.activity:activity-compose:1.9.2")
     implementation(platform("androidx.compose:compose-bom:2024.09.00"))
+
     // BOM para Compose (si lo tienes en el catalog)
     implementation(libs.androidx.ui)                      // ui alias del catalog (si está definido)
     implementation(libs.androidx.ui.graphics)
@@ -61,6 +63,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.5.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+
 
 
     testImplementation(libs.junit)

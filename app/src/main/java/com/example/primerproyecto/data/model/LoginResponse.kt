@@ -8,14 +8,11 @@ data class LoginResponse(
     val success: Boolean,
 
     @SerializedName("message")
-    val message: String,
+    val message: String? = null,
 
     @SerializedName("token")
     val token: String? = null,
 
     @SerializedName("user")
-    val user: User? = null,
-
-    @SerializedName("role") // ✅ NUEVO: Campo para el rol
-    val role: String? = "client" // Valor por defecto
+    val user: User? = null
 )

@@ -1,4 +1,3 @@
-
 package com.example.primerproyecto.ui.view.login
 
 import android.util.Patterns
@@ -18,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -27,14 +27,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.primerproyecto.R
 import com.example.primerproyecto.data.model.LoginRequest
 import com.example.primerproyecto.ui.viewmodel.LoginViewModel
+import com.example.primerproyecto.ui.viewmodel.LoginViewModelFactory
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (String, String) -> Unit, // ✅ CAMBIO: Ahora recibe token y rol
+    onLoginSuccess: (String, String, Int) -> Unit, // ✅ AHORA RECIBE 3 PARÁMETROS: token, role, userId
     onGoToRegister: () -> Unit,
     onGuestLogin: () -> Unit
 ) {
-    val viewModel: LoginViewModel = viewModel()
+    val context = LocalContext.current
+
+    // ✅ SOLUCIÓN: Usar el factory con contexto
+    val viewModel: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(context)
+    )
+
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val loginResponse by viewModel.loginResponse.collectAsState()
@@ -48,12 +55,19 @@ fun LoginScreen(
         loginResponse?.let { response ->
             if (response.success) {
                 val token = response.token
-                val role = response.role ?: "client" // ✅ Obtener el rol o usar "client" por defecto
+                // ✅ Obtener el rol del usuario desde user.role.name
+                val role = response.user?.role?.name ?: "client"
+                // ✅ OBTENER EL USER ID DEL USUARIO
+                val userId = response.user?.id ?: 0
 
-                if (token != null) {
-                    onLoginSuccess(token, role) // ✅ Pasar tanto token como rol
+                if (token != null && userId > 0) {
+                    onLoginSuccess(token, role, userId) // ✅ PASAR LOS 3 PARÁMETROS
                 } else {
-                    localErrorMessage = response.message ?: "Token no recibido del servidor"
+                    localErrorMessage = if (userId == 0) {
+                        "No se pudo obtener el ID del usuario"
+                    } else {
+                        response.message ?: "Token no recibido del servidor"
+                    }
                 }
             } else {
                 localErrorMessage = response.message ?: "Error en el login"

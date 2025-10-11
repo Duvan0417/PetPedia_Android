@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -243,18 +244,24 @@ fun ProductoCardAPI(producto: Products, onAgregar: () -> Unit) {
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Imagen desde API
-            val imageUrl = if (!producto.image.isNullOrEmpty()) {
-                if (producto.image!!.startsWith("http")) producto.image
-                else "http://10.0.2.2:8000/storage/${producto.image}"
-            } else null
+            // Determinar si es producto de prueba
+            val esProductoDePrueba = esProductoDePrueba(producto)
 
-            Image(
-                painter = rememberAsyncImagePainter(
+            val painter = if (esProductoDePrueba) {
+                // Usar imagen local para productos de prueba
+                getImagenLocalParaProducto(producto)
+            } else {
+                // Usar imagen de la API para productos reales
+                val imageUrl = buildImageUrl(producto.image)
+                rememberAsyncImagePainter(
                     model = imageUrl,
                     error = painterResource(id = R.drawable.logopet),
                     placeholder = painterResource(id = R.drawable.logopet)
-                ),
+                )
+            }
+
+            Image(
+                painter = painter,
                 contentDescription = producto.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -281,6 +288,59 @@ fun ProductoCardAPI(producto: Products, onAgregar: () -> Unit) {
                 Text("Agregar", color = Color.White)
             }
         }
+    }
+}
+
+// Función para detectar si es un producto de prueba
+fun esProductoDePrueba(producto: Products): Boolean {
+    // IDs de los productos de prueba (ajusta según tus datos)
+    val idsProductosPrueba = listOf(1, 2, 3, 4, 5, 6)
+
+    // Nombres de los productos de prueba (como backup)
+    val nombresProductosPrueba = listOf(
+        "Royal Canin",
+        "Pro Plan",
+        "Pelota Interactiva",
+        "Rascador para Gatos",
+        "Shampoo Anti Pulgas",
+        "Cepillo Deslanador"
+    )
+
+    return producto.id in idsProductosPrueba ||
+            producto.name in nombresProductosPrueba
+}
+
+// Función para obtener imagen local según el producto
+@Composable
+fun getImagenLocalParaProducto(producto: Products): Painter {
+    return when {
+        producto.name.contains("Royal Canin", ignoreCase = true) -> painterResource(R.drawable.producto1)
+        producto.name.contains("Pro Plan", ignoreCase = true) -> painterResource(R.drawable.producto2)
+        producto.name.contains("Pelota Interactiva", ignoreCase = true) -> painterResource(R.drawable.producto3)
+        producto.name.contains("Rascador", ignoreCase = true) -> painterResource(R.drawable.producto4)
+        producto.name.contains("Shampoo", ignoreCase = true) -> painterResource(R.drawable.producto5)
+        producto.name.contains("Cepillo", ignoreCase = true) -> painterResource(R.drawable.producto6)
+        else -> {
+            // Si no coincide por nombre, intentar por ID
+            when (producto.id) {
+                1 -> painterResource(R.drawable.producto1)
+                2 -> painterResource(R.drawable.producto2)
+                3 -> painterResource(R.drawable.producto3)
+                4 -> painterResource(R.drawable.producto4)
+                5 -> painterResource(R.drawable.producto5)
+                6 -> painterResource(R.drawable.producto6)
+                else -> painterResource(R.drawable.logopet) // Imagen por defecto
+            }
+        }
+    }
+}
+
+// Función para construir URL de imagen
+fun buildImageUrl(imagePath: String?): String? {
+    return when {
+        imagePath.isNullOrEmpty() -> null
+        imagePath.startsWith("http") -> imagePath
+        else -> "http://10.0.2.2:8000/storage/$imagePath"
     }
 }
 

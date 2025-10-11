@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -128,30 +129,30 @@ fun MascotaCard(adoption: Adoption, pet: com.example.primerproyecto.data.model.P
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column {
-            // Imagen principal desde la API
+            // Imagen principal
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(220.dp)
             ) {
-                val imageUrl = if (pet.image.isNullOrEmpty()) {
-                    null
-                } else {
-                    if (pet.image!!.startsWith("http")) {
-                        pet.image
-                    } else {
-                        "http://10.0.2.2:8000/storage/${pet.image}"
-                    }
-                }
+                // Determinar si es mascota de prueba
+                val esMascotaDePrueba = esMascotaDePrueba(pet)
 
-                val painter = rememberAsyncImagePainter(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imageUrl)
-                        .crossfade(true)
-                        .build(),
-                    placeholder = painterResource(R.drawable.adopcion2),
-                    error = painterResource(R.drawable.adopcion2)
-                )
+                val painter = if (esMascotaDePrueba) {
+                    // Usar imagen local para mascotas de prueba
+                    getImagenLocalParaMascota(pet)
+                } else {
+                    // Usar imagen de la API para mascotas reales
+                    val imageUrl = buildImageUrl(pet.image)
+                    rememberAsyncImagePainter(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(imageUrl)
+                            .crossfade(true)
+                            .build(),
+                        placeholder = painterResource(R.drawable.adopcion3),
+                        error = painterResource(R.drawable.adopcion3)
+                    )
+                }
 
                 Image(
                     painter = painter,
@@ -391,4 +392,52 @@ fun AdopcionFormDialog(
         shape = RoundedCornerShape(16.dp),
         containerColor = Color.White
     )
+}
+
+// Función para detectar si es una mascota de prueba
+fun esMascotaDePrueba(pet: com.example.primerproyecto.data.model.Pet): Boolean {
+    // IDs de las mascotas de prueba (ajusta según tus datos)
+    val idsMascotasPrueba = listOf(1, 2, 3)
+
+    // Nombres de las mascotas de prueba (como backup)
+    val nombresMascotasPrueba = listOf(
+        "Simba", "Max", "Luna", "Bobby", "Molly"
+    )
+
+    // Razas de las mascotas de prueba
+    val razasMascotasPrueba = listOf(
+        "Siamés", "Bulldog Francés", "Labrador"
+    )
+
+    return pet.id in idsMascotasPrueba ||
+            pet.name in nombresMascotasPrueba ||
+            pet.breed in razasMascotasPrueba
+}
+
+// Función para obtener imagen local según la mascota
+@Composable
+fun getImagenLocalParaMascota(pet: com.example.primerproyecto.data.model.Pet): Painter {
+    return when {
+        pet.breed.contains("Siamés", ignoreCase = true) -> painterResource(R.drawable.adopcion1)
+        pet.breed.contains("Bulldog Francés", ignoreCase = true) -> painterResource(R.drawable.adopcion3)
+        pet.breed.contains("Labrador", ignoreCase = true) -> painterResource(R.drawable.adopcion4)
+        else -> {
+            // Si no coincide por raza, intentar por nombre
+            when {
+                pet.name.contains("Simba", ignoreCase = true) -> painterResource(R.drawable.adopcion1)
+                pet.name.contains("Max", ignoreCase = true) -> painterResource(R.drawable.adopcion3)
+                pet.name.contains("Luna", ignoreCase = true) -> painterResource(R.drawable.adopcion4)
+                else -> painterResource(R.drawable.adopcion3) // Imagen por defecto
+            }
+        }
+    }
+}
+
+// Función para construir URL de imagen
+fun buildImageUrl(imagePath: String?): String? {
+    return when {
+        imagePath.isNullOrEmpty() -> null
+        imagePath.startsWith("http") -> imagePath
+        else -> "http://10.0.2.2:8000/storage/$imagePath"
+    }
 }

@@ -15,13 +15,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.primerproyecto.R
 import com.example.primerproyecto.data.model.Orders
+import com.example.primerproyecto.data.model.OrderItems
+import com.example.primerproyecto.data.model.Products
 import com.example.primerproyecto.ui.viewmodel.OrderViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -29,13 +34,23 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PedidosScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    orderViewModel: OrderViewModel,
+    userId: Int
 ) {
-    val viewModel: OrderViewModel = viewModel()
-    val orders by viewModel.orders.collectAsState()
-    val orderItems by viewModel.orderItems.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
+    // CARGAR PEDIDOS ESPECÍFICOS DEL USUARIO
+    LaunchedEffect(userId) {
+        if (userId > 0) {
+            orderViewModel.loadOrdersByUser(userId)
+        } else {
+            orderViewModel.loadOrders()
+        }
+    }
+
+    val orders by orderViewModel.orders.collectAsStateWithLifecycle()
+    val orderItems by orderViewModel.orderItems.collectAsStateWithLifecycle()
+    val isLoading by orderViewModel.isLoading.collectAsStateWithLifecycle()
+    val error by orderViewModel.error.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -103,7 +118,13 @@ fun PedidosScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
-                            onClick = { viewModel.loadOrders() },
+                            onClick = {
+                                if (userId > 0) {
+                                    orderViewModel.loadOrdersByUser(userId)
+                                } else {
+                                    orderViewModel.loadOrders()
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6C28D0))
                         ) {
                             Text("Reintentar")
@@ -129,13 +150,13 @@ fun PedidosScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            "No tienes pedidos aún",
+                            if (userId == 0) "Inicia sesión para ver tus pedidos" else "No tienes pedidos aún",
                             fontSize = 18.sp,
                             color = Color.Gray
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Realiza tu primera compra en la tienda",
+                            if (userId == 0) "Los usuarios invitados no pueden ver el historial" else "Realiza tu primera compra en la tienda",
                             fontSize = 14.sp,
                             color = Color.Gray
                         )
@@ -155,7 +176,7 @@ fun PedidosScreen(
                     items(orders) { order ->
                         OrderCard(
                             order = order,
-                            orderItems = viewModel.getOrderItemsForOrder(order.id)
+                            orderItems = orderViewModel.getOrderItemsForOrder(order.id)
                         )
                     }
                 }
@@ -167,22 +188,45 @@ fun PedidosScreen(
 @Composable
 fun OrderCard(
     order: Orders,
-    orderItems: List<com.example.primerproyecto.data.model.OrderItems>
+    orderItems: List<OrderItems>
 ) {
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
-    val inputFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
 
-    val formattedDate = try {
-        val date = inputFormat.parse(order.order_date)
-        dateFormat.format(date!!)
-    } catch (e: Exception) {
-        order.order_date
+    // Manejar diferentes formatos de fecha
+    val formattedDate = remember(order.orderDate) {
+        try {
+            // Intentar diferentes formatos de fecha
+            val formats = listOf(
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()),
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()),
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            )
+
+            var parsedDate: Date? = null
+            for (format in formats) {
+                try {
+                    parsedDate = format.parse(order.orderDate)
+                    if (parsedDate != null) break
+                } catch (e: Exception) {
+                    // Continuar con el siguiente formato
+                }
+            }
+
+            if (parsedDate != null) {
+                dateFormat.format(parsedDate)
+            } else {
+                order.orderDate // Devolver la fecha original si no se puede parsear
+            }
+        } catch (e: Exception) {
+            order.orderDate
+        }
     }
 
-    val fechaEntregaEstimada = remember {
+    val fechaEntregaEstimada = remember(order.orderDate) {
         try {
             val calendar = Calendar.getInstance()
-            val date = inputFormat.parse(order.order_date)
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val date = inputFormat.parse(order.orderDate)
             calendar.time = date!!
             calendar.add(Calendar.DAY_OF_YEAR, 3)
             SimpleDateFormat("EEE, dd MMM", Locale.getDefault()).format(calendar.time)
@@ -198,7 +242,7 @@ fun OrderCard(
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(16.dp) // Reducido de 20dp a 16dp
         ) {
             // Encabezado del pedido
             Row(
@@ -210,88 +254,79 @@ fun OrderCard(
                     Text(
                         "Pedido #${order.id}",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp, // Reducido de 18sp
                         color = Color(0xFF333333)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp)) // Reducido
                     Text(
                         "Realizado: $formattedDate",
-                        fontSize = 12.sp,
+                        fontSize = 11.sp, // Reducido de 12sp
                         color = Color.Gray
                     )
                 }
 
                 Badge(
-                    containerColor = when(order.status) {
+                    containerColor = when(order.status.toLowerCase(Locale.ROOT)) {
                         "completed" -> Color(0xFF4CAF50)
                         "cancelled" -> Color(0xFFF44336)
                         else -> Color(0xFFFF9800) // pending
-                    },
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    }
                 ) {
                     Text(
-                        when(order.status) {
+                        when(order.status.toLowerCase(Locale.ROOT)) {
                             "pending" -> "Pendiente"
                             "completed" -> "Completado"
                             "cancelled" -> "Cancelado"
                             else -> order.status
                         },
                         color = Color.White,
-                        fontSize = 11.sp,
+                        fontSize = 10.sp, // Reducido de 11sp
                         fontWeight = FontWeight.Medium
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp)) // Reducido de 16dp
 
             // Productos del pedido
             if (orderItems.isNotEmpty()) {
                 Text(
                     "Productos:",
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
+                    fontSize = 13.sp, // Reducido de 14sp
                     color = Color(0xFF555555),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 6.dp) // Reducido
                 )
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFF8F9FA), RoundedCornerShape(12.dp))
-                        .padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .background(Color(0xFFF8F9FA), RoundedCornerShape(8.dp)) // Reducido de 12dp
+                        .padding(8.dp), // Reducido de 12dp
+                    verticalArrangement = Arrangement.spacedBy(8.dp) // Reducido de 12dp
                 ) {
-                    orderItems.take(3).forEach { item ->
+                    orderItems.forEach { item -> // Mostrar todos los productos, no solo 3
                         OrderItemCard(item = item)
                     }
-
-                    if (orderItems.size > 3) {
-                        Text(
-                            "+ ${orderItems.size - 3} productos más...",
-                            fontSize = 12.sp,
-                            color = Color(0xFF6C28D0),
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp)) // Reducido de 16dp
             }
 
             // Información de entrega y total
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
                     Text(
                         "Entrega estimada:",
-                        fontSize = 12.sp,
+                        fontSize = 11.sp, // Reducido de 12sp
                         color = Color.Gray
                     )
                     Text(
                         fechaEntregaEstimada,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp, // Reducido de 14sp
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF6C28D0)
                     )
@@ -300,52 +335,46 @@ fun OrderCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         "Total:",
-                        fontSize = 14.sp,
+                        fontSize = 13.sp, // Reducido de 14sp
                         color = Color.Gray
                     )
                     Text(
-                        "$${String.format("%.2f", order.total_amount)}",
+                        "$${"%.2f".format(order.totalAmount)}",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp, // Reducido de 18sp
                         color = Color(0xFF6C28D0)
                     )
                 }
             }
 
-            // Barra de progreso de entrega
-            if (order.status == "pending") {
-                Spacer(modifier = Modifier.height(16.dp))
+            // Barra de progreso de entrega (solo si está pendiente o completado)
+            if (order.status.toLowerCase(Locale.ROOT) == "pending" ||
+                order.status.toLowerCase(Locale.ROOT) == "completed") {
+
+                Spacer(modifier = Modifier.height(12.dp)) // Reducido de 16dp
+
+                val progress = if (order.status.toLowerCase(Locale.ROOT) == "completed") 1f else 0.3f
+                val progressColor = if (order.status.toLowerCase(Locale.ROOT) == "completed")
+                    Color(0xFF4CAF50) else Color(0xFF6C28D0)
+                val progressText = if (order.status.toLowerCase(Locale.ROOT) == "completed")
+                    "Pedido entregado" else "Procesando pedido..."
+                val textColor = if (order.status.toLowerCase(Locale.ROOT) == "completed")
+                    Color(0xFF4CAF50) else Color.Gray
+
                 LinearProgressIndicator(
-                    progress = 0.3f,
+                    progress = progress,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(3.dp)),
-                    color = Color(0xFF6C28D0),
+                        .height(4.dp) // Reducido de 6dp
+                        .clip(RoundedCornerShape(2.dp)), // Reducido de 3dp
+                    color = progressColor,
                     trackColor = Color(0xFFE0E0E0)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "Procesando pedido...",
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
-            } else if (order.status == "completed") {
-                Spacer(modifier = Modifier.height(16.dp))
-                LinearProgressIndicator(
-                    progress = 1f,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(3.dp)),
-                    color = Color(0xFF4CAF50),
-                    trackColor = Color(0xFFE0E0E0)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    "Pedido entregado",
-                    fontSize = 12.sp,
-                    color = Color(0xFF4CAF50)
+                    progressText,
+                    fontSize = 11.sp, // Reducido de 12sp
+                    color = textColor
                 )
             }
         }
@@ -353,7 +382,7 @@ fun OrderCard(
 }
 
 @Composable
-fun OrderItemCard(item: com.example.primerproyecto.data.model.OrderItems) {
+fun OrderItemCard(item: OrderItems) { // ✅ CORREGIDO: Usar OrderItems directamente
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -364,15 +393,19 @@ fun OrderItemCard(item: com.example.primerproyecto.data.model.OrderItems) {
             else "http://10.0.2.2:8000/storage/${item.product.image}"
         } else null
 
+        val context = LocalContext.current
         AsyncImage(
-            model = imageUrl,
-            contentDescription = item.product?.name ?: "Producto",
+            model = ImageRequest.Builder(context)
+                .data(imageUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = item.product?.name ?: "Producto ${item.productId}", // ✅ CORREGIDO: productId en lugar de product_id
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(50.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color(0xFFEFEFEF)),
-            error = androidx.compose.ui.res.painterResource(id = R.drawable.logopet)
+            error = painterResource(id = R.drawable.logopet) // ✅ CORREGIDO: painterResource
         )
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -380,7 +413,7 @@ fun OrderItemCard(item: com.example.primerproyecto.data.model.OrderItems) {
         // Información del producto
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                item.product?.name ?: "Producto ${item.product_id}",
+                item.product?.name ?: "Producto ${item.productId}", // ✅ CORREGIDO: productId
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF333333),
@@ -395,7 +428,7 @@ fun OrderItemCard(item: com.example.primerproyecto.data.model.OrderItems) {
 
         // Precio del producto
         Text(
-            "$${String.format("%.2f", item.price * item.quantity)}",
+            "$${"%.2f".format(item.price * item.quantity)}", // ✅ CORREGIDO: String.format -> "%.2f".format
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF6C28D0)

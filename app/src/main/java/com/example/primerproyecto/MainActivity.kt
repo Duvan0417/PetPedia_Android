@@ -1,9 +1,9 @@
-
 package com.example.primerproyecto
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import com.example.primerproyecto.data.Apiservice.RetrofitService
 import com.example.primerproyecto.data.model.Products
 import com.example.primerproyecto.ui.components.CarritoDialog
@@ -38,6 +39,10 @@ import com.example.primerproyecto.ui.view.perfil.PerfilScreen
 import com.example.primerproyecto.ui.view.register.RegisterScreen
 import com.example.primerproyecto.ui.view.tienda.TiendaScreen
 import com.example.primerproyecto.ui.view.veterinarias.VeterinariasScreen
+import com.example.primerproyecto.ui.viewmodel.OrderViewModel
+import com.example.primerproyecto.ui.viewmodel.ShoppingCartViewModel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 // ======================= THEME =======================
 @Composable
@@ -54,6 +59,11 @@ fun PetAppTheme(content: @Composable () -> Unit) {
 
 // ======================= MAIN ACTIVITY =======================
 class MainActivity : ComponentActivity() {
+
+    // ViewModels a nivel de Activity
+    private val orderViewModel: OrderViewModel by viewModels()
+    private val shoppingCartViewModel: ShoppingCartViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -63,6 +73,7 @@ class MainActivity : ComponentActivity() {
                 var showRegister by remember { mutableStateOf(false) }
                 var authToken by remember { mutableStateOf<String?>(null) }
                 var userRole by remember { mutableStateOf<String?>(null) }
+                var currentUserId by remember { mutableStateOf(0) }
 
                 if (!isLoggedIn) {
                     if (showRegister) {
@@ -74,21 +85,64 @@ class MainActivity : ComponentActivity() {
                         )
                     } else {
                         LoginScreen(
-                            onLoginSuccess = { token, role -> // ✅ Recibir token y rol
+                            onLoginSuccess = { token, role, userId -> // ✅ Ahora también recibimos userId
                                 authToken = token
                                 userRole = role
+                                currentUserId = userId
                                 RetrofitService.setAuthToken(token)
                                 isLoggedIn = true
                             },
                             onGoToRegister = { showRegister = true },
                             onGuestLogin = {
                                 userRole = "guest"
+                                currentUserId = 0 // Usuario invitado
                                 isLoggedIn = true
                             }
                         )
                     }
                 } else {
-                    PetApp(authToken = authToken, userRole = userRole)
+                    PetApp(
+                        authToken = authToken,
+                        userRole = userRole,
+                        currentUserId = currentUserId,
+                        orderViewModel = orderViewModel,
+                        shoppingCartViewModel = shoppingCartViewModel
+                    )
+                }
+            }
+        }
+    }
+
+    // Función para procesar el checkout
+    fun processCheckout(userId: Int, carritoItems: List<CarritoItem>) {
+        if (carritoItems.isEmpty()) {
+            // Mostrar mensaje de carrito vacío
+            return
+        }
+
+        // Convertir CarritoItem a formato para el ViewModel
+        val cartItemsForAPI = carritoItems.map { it.product to it.cantidad }
+
+        orderViewModel.createOrder(userId, cartItemsForAPI)
+
+        // Observar el resultado
+        lifecycleScope.launch {
+            orderViewModel.orderCreated.collect { created ->
+                if (created) {
+                    // Limpiar carrito local
+                    shoppingCartViewModel.clearCart()
+                    orderViewModel.resetOrderCreated()
+                    // Aquí puedes mostrar un mensaje de éxito
+                }
+            }
+        }
+
+        // Observar errores
+        lifecycleScope.launch {
+            orderViewModel.error.collectLatest { error ->
+                error?.let {
+                    // Mostrar mensaje de error
+                    orderViewModel.clearError()
                 }
             }
         }
@@ -123,30 +177,48 @@ data class Pedido(
 
 // ======================= MAIN APP =======================
 @Composable
-fun PetApp(authToken: String? = null, userRole: String? = null) {
-
-    // ✅ DETERMINAR QUÉ INTERFAZ MOSTRAR SEGÚN EL ROL (EN ESPAÑOL E INGLÉS)
+fun PetApp(
+    authToken: String? = null,
+    userRole: String? = null,
+    currentUserId: Int = 0,
+    orderViewModel: OrderViewModel,
+    shoppingCartViewModel: ShoppingCartViewModel
+) {
+    // ✅ DETERMINAR QUÉ INTERFAZ MOSTRAR SEGÚN EL ROL
     when {
-        userRole == "veterinarian" || userRole == "Veterinaria" || userRole == "veterinario" ->
+        userRole == "Veterinaria" || userRole?.contains("veterinaria", ignoreCase = true) == true ->
             UserVeterinarioScreen() // ✅ PARA VETERINARIOS
 
-        userRole == "trainer" || userRole == "Entrenador" || userRole == "entrenador" ->
+        userRole == "Entrenador" || userRole?.contains("entrenador", ignoreCase = true) == true ->
             UserEntrenadorScreen() // ✅ PARA ENTRENADORES
 
-        userRole == "shelter" || userRole == "Refugio" || userRole == "refugio" ->
+        userRole == "Refugio" || userRole?.contains("refugio", ignoreCase = true) == true ->
             UserRefugioScreen() // ✅ PARA REFUGIOS
 
-        else -> ClienteApp() // Cliente, guest o cualquier otro
+        else -> ClienteApp(
+            currentUserId = currentUserId,
+            orderViewModel = orderViewModel,
+            shoppingCartViewModel = shoppingCartViewModel
+        ) // Cliente, guest o cualquier otro
     }
 }
 
 // ======================= APP PARA CLIENTES =======================
 @Composable
-fun ClienteApp() {
+fun ClienteApp(
+    currentUserId: Int,
+    orderViewModel: OrderViewModel,
+    shoppingCartViewModel: ShoppingCartViewModel
+) {
     var selectedTab by remember { mutableStateOf(0) }
     val carrito = remember { mutableStateListOf<CarritoItem>() }
     val pedidos = remember { mutableStateListOf<Pedido>() }
     var mostrarCarrito by remember { mutableStateOf(false) }
+
+    // Estados para el proceso de checkout
+    var mostrarCheckoutSuccess by remember { mutableStateOf(false) }
+    var mostrarCheckoutError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     // Estados para navegación en Más Opciones
     var mostrarPerfil by remember { mutableStateOf(false) }
@@ -155,6 +227,29 @@ fun ClienteApp() {
     var mostrarGestionarServicios by remember { mutableStateOf(false) }
     var mostrarForo by remember { mutableStateOf(false) }
     var mostrarPedidos by remember { mutableStateOf(false) }
+
+    // Observar el estado del ViewModel
+    val orderCreated by orderViewModel.orderCreated.collectAsState()
+    val orderError by orderViewModel.error.collectAsState()
+    val isLoading by orderViewModel.isLoading.collectAsState()
+
+    // Efecto para manejar éxito del checkout
+    LaunchedEffect(orderCreated) {
+        if (orderCreated) {
+            mostrarCheckoutSuccess = true
+            carrito.clear()
+            orderViewModel.resetOrderCreated()
+        }
+    }
+
+    // Efecto para manejar errores del checkout
+    LaunchedEffect(orderError) {
+        orderError?.let { error ->
+            mostrarCheckoutError = true
+            errorMessage = error
+            orderViewModel.clearError()
+        }
+    }
 
     // Tabs para clientes
     val tabs = listOf(
@@ -182,7 +277,11 @@ fun ClienteApp() {
                             onBack = { mostrarGestionarServicios = false }
                         )
                         mostrarForo -> ForumScreen(onBack = { mostrarForo = false })
-                        mostrarPedidos -> PedidosScreen(onBack = { mostrarPedidos = false })
+                        mostrarPedidos -> PedidosScreen(
+                            onBack = { mostrarPedidos = false },
+                            orderViewModel = orderViewModel,
+                            userId = currentUserId
+                        )
 
                         else -> when (selectedTab) {
                             0 -> HomeScreen()
@@ -196,6 +295,8 @@ fun ClienteApp() {
                                     } else {
                                         carrito.add(CarritoItem(product, 1))
                                     }
+                                    // También actualizar el ViewModel
+                                    shoppingCartViewModel.addToCart(product)
                                 }
                             )
                             2 -> VeterinariasScreen()
@@ -205,7 +306,13 @@ fun ClienteApp() {
                                 onNavigateToAdopciones = { mostrarAdopciones = true },
                                 onNavigateToGestionarServicios = { mostrarGestionarServicios = true },
                                 onNavigateToForo = { mostrarForo = true },
-                                onNavigateToPedidos = { mostrarPedidos = true }
+                                onNavigateToPedidos = {
+                                    mostrarPedidos = true
+                                    // Cargar pedidos del usuario
+                                    if (currentUserId > 0) {
+                                        orderViewModel.loadOrdersByUser(currentUserId)
+                                    }
+                                }
                             )
                         }
                     }
@@ -305,23 +412,68 @@ fun ClienteApp() {
             CarritoDialog(
                 carrito = carrito,
                 onCerrar = { mostrarCarrito = false },
-                onEliminar = { item -> carrito.remove(item) },
+                onEliminar = { item ->
+                    carrito.remove(item)
+                    shoppingCartViewModel.removeFromCart(item.product)
+                },
                 onActualizarCantidad = { item, nuevaCantidad ->
                     val index = carrito.indexOf(item)
                     if (index != -1) {
                         carrito[index] = item.copy(cantidad = nuevaCantidad)
+                        shoppingCartViewModel.updateQuantity(item.product, nuevaCantidad)
                     }
                 },
                 onFinalizarCompra = {
-                    val total = carrito.sumOf { it.product.price * it.cantidad }
+                    if (currentUserId == 0) {
+                        // Usuario no logueado
+                        mostrarCheckoutError = true
+                        errorMessage = "Debes iniciar sesión para realizar una compra"
+                        return@CarritoDialog
+                    }
+
                     if (carrito.isNotEmpty()) {
-                        pedidos.add(0, Pedido(
-                            productos = carrito.toList(),
-                            total = total
-                        ))
+                        // Usar el ViewModel para crear la orden
+                        val cartItemsForAPI = carrito.map { it.product to it.cantidad }
+                        orderViewModel.createOrder(currentUserId, cartItemsForAPI)
                     }
                     mostrarCarrito = false
-                    carrito.clear()
+                },
+                isLoading = isLoading
+            )
+        }
+
+        // ======= ALERTA DE ÉXITO =======
+        if (mostrarCheckoutSuccess) {
+            AlertDialog(
+                onDismissRequest = { mostrarCheckoutSuccess = false },
+                title = { Text("¡Compra Exitosa!") },
+                text = { Text("Tu pedido ha sido procesado correctamente y se ha guardado en la base de datos.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            mostrarCheckoutSuccess = false
+                            // Opcional: navegar a pedidos
+                            mostrarPedidos = true
+                        }
+                    ) {
+                        Text("Ver Pedidos")
+                    }
+                }
+            )
+        }
+
+        // ======= ALERTA DE ERROR =======
+        if (mostrarCheckoutError) {
+            AlertDialog(
+                onDismissRequest = { mostrarCheckoutError = false },
+                title = { Text("Error en la Compra") },
+                text = { Text(errorMessage) },
+                confirmButton = {
+                    TextButton(
+                        onClick = { mostrarCheckoutError = false }
+                    ) {
+                        Text("Aceptar")
+                    }
                 }
             )
         }

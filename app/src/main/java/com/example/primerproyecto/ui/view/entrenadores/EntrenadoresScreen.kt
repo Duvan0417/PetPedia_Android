@@ -14,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -23,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.primerproyecto.R
 import com.example.primerproyecto.data.model.Trainer
 import com.example.primerproyecto.ui.viewmodel.TrainerViewModel
@@ -148,28 +151,33 @@ fun TrainerCard(trainer: Trainer) {
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                if (!trainer.image.isNullOrEmpty()) {
-                    Image(
-                        painter = rememberAsyncImagePainter(
-                            model = trainer.image,
-                            error = painterResource(id = R.drawable.ic_user_placeholder)
-                        ),
-                        contentDescription = "Entrenador",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                    )
+                // Determinar si es entrenador de prueba
+                val esEntrenadorDePrueba = esEntrenadorDePrueba(trainer)
+
+                val painter = if (esEntrenadorDePrueba) {
+                    // Usar imagen local para entrenadores de prueba
+                    getImagenLocalParaEntrenador(trainer)
                 } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_user_placeholder),
-                        contentDescription = "Entrenador",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    // Usar imagen de la API para entrenadores reales
+                    val imageUrl = buildImageUrl(trainer.image)
+                    rememberAsyncImagePainter(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(imageUrl)
+                            .crossfade(true)
+                            .build(),
+                        placeholder = painterResource(R.drawable.ic_user_placeholder),
+                        error = painterResource(R.drawable.ic_user_placeholder)
                     )
                 }
+
+                Image(
+                    painter = painter,
+                    contentDescription = "Entrenador",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                )
 
                 // Rating
                 Surface(
@@ -267,5 +275,52 @@ fun TrainerCard(trainer: Trainer) {
                 }
             }
         }
+    }
+}
+
+// Función para detectar si es un entrenador de prueba
+fun esEntrenadorDePrueba(trainer: Trainer): Boolean {
+    // IDs de los entrenadores de prueba (1, 2, 3, 4)
+    val idsEntrenadoresPrueba = listOf(1, 2, 3, 4)
+
+    // Especialidades de los entrenadores de prueba (como backup)
+    val especialidadesPrueba = listOf(
+        "Adiestramiento Básico",
+        "Obediencia Avanzada",
+        "Modificación de Conducta",
+        "Agility"
+    )
+
+    return trainer.id in idsEntrenadoresPrueba ||
+            trainer.specialty in especialidadesPrueba
+}
+
+// Función para obtener imagen local según el entrenador
+@Composable
+fun getImagenLocalParaEntrenador(trainer: Trainer): Painter {
+    return when (trainer.id) {
+        1 -> painterResource(R.drawable.entrenador1)
+        2 -> painterResource(R.drawable.entrenador2)
+        3 -> painterResource(R.drawable.entrenador3)
+        4 -> painterResource(R.drawable.entrenador4)
+        else -> {
+            // Si no coincide por ID, intentar por especialidad
+            when {
+                trainer.specialty?.contains("Adiestramiento Básico") == true -> painterResource(R.drawable.entrenador1)
+                trainer.specialty?.contains("Obediencia Avanzada") == true -> painterResource(R.drawable.entrenador2)
+                trainer.specialty?.contains("Modificación de Conducta") == true -> painterResource(R.drawable.entrenador3)
+                trainer.specialty?.contains("Agility") == true -> painterResource(R.drawable.entrenador4)
+                else -> painterResource(R.drawable.ic_user_placeholder) // Imagen por defecto
+            }
+        }
+    }
+}
+
+// Función para construir URL de imagen
+fun buildImageUrl(imagePath: String?): String? {
+    return when {
+        imagePath.isNullOrEmpty() -> null
+        imagePath.startsWith("http") -> imagePath
+        else -> "http://127.0.0.1:8000/storage/$imagePath"
     }
 }

@@ -3,6 +3,7 @@ package com.example.primerproyecto.ui.view.forum
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,14 +22,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import java.util.UUID
+import com.example.primerproyecto.R
+import com.example.primerproyecto.data.model.Forum
+import com.example.primerproyecto.data.model.ForumComment
+import com.example.primerproyecto.ui.viewmodel.ForumViewModel
+import com.example.primerproyecto.ui.viewmodel.ForumViewModelFactory
 
 // Colores foro - Mejorados
 val PurplePrimary = Color(0xFF4F46E5)
@@ -41,96 +51,33 @@ val TextSecondary = Color(0xFF6B7280)
 
 val SuccessColor = Color(0xFF10B981)
 val ErrorColor = Color(0xFFEF4444)
-
 val WarningColor = Color(0xFFF59E0B)
-
-// data clases
-data class Publicacion(
-    val id: String = UUID.randomUUID().toString(),
-    val usuario: String,
-    val contenido: String,
-    val imagenUri: String? = null,
-    val fecha: String,
-    var meGusta: Int = 0,
-    var comentarios: MutableList<Comentario> = mutableListOf(),
-    var meGustaDado: Boolean = false
-)
-
-data class Comentario(
-    val id: String = UUID.randomUUID().toString(),
-    val usuario: String,
-    val contenido: String,
-    val fecha: String
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ForumScreen(
     onBack: () -> Unit = {}
 ) {
-    var publicaciones by remember { mutableStateOf(listOf<Publicacion>()) }
+    val context = LocalContext.current
+    // Usar el factory para pasar el contexto
+    val viewModel: ForumViewModel = viewModel(factory = ForumViewModelFactory(context))
+
+    // ... el resto de tu código permanece igual ...
     var mostrarDialogoImagen by remember { mutableStateOf(false) }
     var imagenAmpliada by remember { mutableStateOf("") }
     var mostrarNuevaPublicacion by remember { mutableStateOf(false) }
 
+    // Cargar posts al iniciar
     LaunchedEffect(Unit) {
-        publicaciones = listOf(
-            Publicacion(
-                usuario = "Ana Martínez",
-                contenido = "Hoy llevé a mi perro Max al parque y descubrí un nuevo juego que le encanta: buscar la pelota entre los árboles. ¡Se divirtió muchísimo! ¿Alguien más tiene juegos recomendados para perros activos?",
-                imagenUri = "https://images.unsplash.com/photo-1552053831-71594a27632d",
-                fecha = "Hace 2 horas",
-                meGusta = 24,
-                comentarios = mutableListOf(
-                    Comentario(
-                        usuario = "Carlos López",
-                        contenido = "A mi perro le encanta jugar al escondite con sus juguetes. ¡Es muy divertido!",
-                        fecha = "Hace 1 hora"
-                    ),
-                    Comentario(
-                        usuario = "María García",
-                        contenido = "Prueba con puzzles de comida, a mi golden retriever le mantiene entretenido por horas.",
-                        fecha = "Hace 45 min"
-                    )
-                )
-            ),
-            Publicacion(
-                usuario = "Luis Fernández",
-                contenido = "¿Alguien sabe de algún shampoo natural para gatos? Mi gato tiene la piel sensible y necesito algo suave.",
-                fecha = "Hace 5 horas",
-                imagenUri = "https://images.unsplash.com/photo-1533738363-b7f9aef128ce",
-                meGusta = 15,
-                comentarios = mutableListOf(
-                    Comentario(
-                        usuario = "Elena Torres",
-                        contenido = "Yo uso uno de avena, es muy suave y a mi gato le va genial.",
-                        fecha = "Hace 3 horas"
-                    )
-                )
-            ),
-            Publicacion(
-                usuario = "Camilo Salazar",
-                contenido = "¿Me pueden recomendar un alimento bueno para mi gato de 6 meses?.",
-                fecha = "Hace 5 horas",
-                imagenUri = "https://images.unsplash.com/photo-1592194996308-7b43878e84a6",
-                meGusta = 15,
-                comentarios = mutableListOf(
-                    Comentario(
-                        usuario = "Elena Torres",
-                        contenido = "Yo uso uno de avena, es muy suave y a mi gato le va genial.",
-                        fecha = "Hace 3 horas"
-                    )
-                )
-            ),
-            Publicacion(
-                usuario = "Sofía Mendoza",
-                contenido = "¡Mi gatito aprendió a usar su arenero hoy! 🎉 Estoy tan orgullosa",
-                fecha = "Hace 1 hora",
-                imagenUri = "https://images.unsplash.com/photo-1574144113081-9f3375ef788c",
-                meGusta = 32
-            )
-        )
+        println("🎬 ForumScreen iniciado, cargando posts...")
+        viewModel.loadPosts()
     }
+
+    val posts by viewModel.posts.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    println("📊 Estado actual - Posts: ${posts.size}, Loading: $isLoading, Error: $errorMessage")
 
     if (mostrarDialogoImagen) {
         Dialog(onDismissRequest = { mostrarDialogoImagen = false }) {
@@ -140,17 +87,32 @@ fun ForumScreen(
                     .aspectRatio(1f)
                     .background(Color.Black, RoundedCornerShape(24.dp))
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imagenAmpliada)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Imagen ampliada",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable { mostrarDialogoImagen = false },
-                    contentScale = ContentScale.Fit
-                )
+                // Determinar si es imagen local o de API
+                if (esImagenLocal(imagenAmpliada)) {
+                    // Usar imagen local
+                    val resourceId = getImagenLocalResourceId(imagenAmpliada)
+                    Image(
+                        painter = painterResource(id = resourceId),
+                        contentDescription = "Imagen ampliada",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { mostrarDialogoImagen = false },
+                        contentScale = ContentScale.Fit
+                    )
+                } else {
+                    // Usar imagen de API
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(imagenAmpliada)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Imagen ampliada",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { mostrarDialogoImagen = false },
+                        contentScale = ContentScale.Fit
+                    )
+                }
 
                 IconButton(
                     onClick = { mostrarDialogoImagen = false },
@@ -174,8 +136,8 @@ fun ForumScreen(
 
     if (mostrarNuevaPublicacion) {
         NuevaPublicacionDialog(
-            onPublicar = { nuevaPublicacion ->
-                publicaciones = listOf(nuevaPublicacion) + publicaciones
+            onPublicar = { titulo, contenido, descripcion, imagen ->
+                viewModel.createPost(titulo, contenido)
                 mostrarNuevaPublicacion = false
             },
             onCancelar = { mostrarNuevaPublicacion = false }
@@ -240,38 +202,110 @@ fun ForumScreen(
             }
         }
 
-        // Lista de publicaciones con mejor espaciado
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            items(publicaciones) { publicacion ->
-                TarjetaPublicacion(
-                    publicacion = publicacion,
-                    onMeGusta = { id ->
-                        publicaciones = publicaciones.map {
-                            if (it.id == id) {
-                                it.copy(
-                                    meGusta = if (it.meGustaDado) it.meGusta - 1 else it.meGusta + 1,
-                                    meGustaDado = !it.meGustaDado
-                                )
-                            } else it
-                        }
-                    },
-                    onComentar = { id, comentario ->
-                        publicaciones = publicaciones.map {
-                            if (it.id == id) {
-                                it.copy(comentarios = (it.comentarios + comentario).toMutableList())
-                            } else it
-                        }
-                    },
-                    onAmpliarImagen = { uri ->
-                        imagenAmpliada = uri
-                        mostrarDialogoImagen = true
+        // Loading indicator
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = PurplePrimary)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Cargando publicaciones...")
+                }
+            }
+        } else if (errorMessage != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Default.Error,
+                        contentDescription = "Error",
+                        tint = ErrorColor,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Error: $errorMessage",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { viewModel.loadPosts() },
+                        colors = ButtonDefaults.buttonColors(containerColor = PurplePrimary)
+                    ) {
+                        Text("Reintentar")
                     }
-                )
+                }
+            }
+        } else if (posts.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Default.Forum,
+                        contentDescription = "Foro vacío",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "No hay publicaciones aún",
+                        color = TextSecondary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Sé el primero en compartir algo",
+                        color = TextSecondary,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { mostrarNuevaPublicacion = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = PurplePrimary)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Crear publicación",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Crear primera publicación")
+                    }
+                }
+            }
+        } else {
+            // Lista de publicaciones con mejor espaciado
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                items(posts) { post ->
+                    println("📝 Renderizando post: ${post.id} - ${post.title}")
+                    TarjetaPublicacion(
+                        post = post,
+                        viewModel = viewModel,
+                        onAmpliarImagen = { uri ->
+                            imagenAmpliada = uri
+                            mostrarDialogoImagen = true
+                        }
+                    )
+                }
             }
         }
     }
@@ -280,9 +314,8 @@ fun ForumScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TarjetaPublicacion(
-    publicacion: Publicacion,
-    onMeGusta: (String) -> Unit,
-    onComentar: (String, Comentario) -> Unit,
+    post: Forum,
+    viewModel: ForumViewModel,
     onAmpliarImagen: (String) -> Unit
 ) {
     var mostrarComentarios by remember { mutableStateOf(false) }
@@ -322,13 +355,13 @@ fun TarjetaPublicacion(
 
                 Column {
                     Text(
-                        text = publicacion.usuario,
+                        text = post.user?.name ?: "Usuario",
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
                         color = TextPrimary
                     )
                     Text(
-                        text = publicacion.fecha,
+                        text = viewModel.formatRelativeTime(post.createdAt),
                         color = TextSecondary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -338,7 +371,7 @@ fun TarjetaPublicacion(
                 Spacer(modifier = Modifier.weight(1f))
 
                 // Indicador de me gusta en header
-                if (publicacion.meGusta > 0) {
+                if (post.likesCount > 0) {
                     Box(
                         modifier = Modifier
                             .background(PurpleLight.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
@@ -353,7 +386,7 @@ fun TarjetaPublicacion(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "${publicacion.meGusta}",
+                                text = "${post.likesCount}",
                                 color = PurplePrimary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
@@ -365,9 +398,34 @@ fun TarjetaPublicacion(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Título de la publicación
+            Text(
+                text = post.title,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = PurpleDark,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Descripción si existe
+            post.description?.let { description ->
+                if (description.isNotBlank()) {
+                    Text(
+                        text = description,
+                        fontSize = 14.sp,
+                        color = TextSecondary,
+                        lineHeight = 18.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+
             // Contenido de la publicación mejorado
             Text(
-                text = publicacion.contenido,
+                text = post.content,
                 fontSize = 15.sp,
                 color = TextPrimary,
                 lineHeight = 22.sp,
@@ -377,32 +435,50 @@ fun TarjetaPublicacion(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Imagen con mejor diseño
-            publicacion.imagenUri?.let { uri ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .clickable { onAmpliarImagen(uri) }
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(uri)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Imagen de publicación",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-
-                    // Overlay para efecto al hacer click
+            post.image?.let { imagenUrl ->
+                if (imagenUrl.isNotBlank()) {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.02f))
-                    )
+                            .fillMaxWidth()
+                            .height(300.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable { onAmpliarImagen(imagenUrl) }
+                    ) {
+                        // Determinar si es post de prueba
+                        val esPostDePrueba = esPostDePrueba(post)
+
+                        if (esPostDePrueba) {
+                            // Usar imagen local para posts de prueba
+                            val resourceId = getImagenLocalResourceId(post)
+                            Image(
+                                painter = painterResource(id = resourceId),
+                                contentDescription = "Imagen de publicación",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            // Usar imagen de la API para posts reales
+                            val imageUrl = buildImageUrl(imagenUrl)
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(imageUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Imagen de publicación",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+
+                        // Overlay para efecto al hacer click
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.02f))
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
-                Spacer(modifier = Modifier.height(20.dp))
             }
 
             // Estadísticas mejoradas
@@ -411,15 +487,15 @@ fun TarjetaPublicacion(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "${publicacion.meGusta} me gusta",
+                    text = "${post.likesCount} me gusta",
                     color = TextSecondary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
                 )
 
-                if (publicacion.comentarios.isNotEmpty()) {
+                if (post.commentsCount > 0) {
                     Text(
-                        text = "${publicacion.comentarios.size} comentarios",
+                        text = "${post.commentsCount} comentarios",
                         color = TextSecondary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
@@ -436,15 +512,15 @@ fun TarjetaPublicacion(
             ) {
                 // Botón Me gusta mejorado
                 Button(
-                    onClick = { onMeGusta(publicacion.id) },
+                    onClick = { viewModel.toggleLike(post.id) },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (publicacion.meGustaDado) PurplePrimary else Color.Transparent,
-                        contentColor = if (publicacion.meGustaDado) Color.White else PurplePrimary
+                        containerColor = Color.Transparent,
+                        contentColor = PurplePrimary
                     ),
                     elevation = ButtonDefaults.buttonElevation(0.dp),
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(14.dp),
-                    border = if (!publicacion.meGustaDado) ButtonDefaults.outlinedButtonBorder else null
+                    border = ButtonDefaults.outlinedButtonBorder
                 ) {
                     Icon(
                         imageVector = Icons.Default.Favorite,
@@ -500,7 +576,7 @@ fun TarjetaPublicacion(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // Lista de comentarios
-                if (publicacion.comentarios.isNotEmpty()) {
+                if (post.safeComments.isNotEmpty()) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -515,8 +591,9 @@ fun TarjetaPublicacion(
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
 
-                        publicacion.comentarios.forEach { comentario ->
-                            ComentarioItem(comentario = comentario)
+                        // ✅ Usar safeComments
+                        post.safeComments.forEach { comentario ->
+                            ComentarioItem(comentario = comentario, viewModel = viewModel)
                             Spacer(modifier = Modifier.height(14.dp))
                         }
                     }
@@ -577,12 +654,7 @@ fun TarjetaPublicacion(
                         IconButton(
                             onClick = {
                                 if (textoComentario.isNotBlank()) {
-                                    val nuevoComentario = Comentario(
-                                        usuario = "Tú",
-                                        contenido = textoComentario,
-                                        fecha = "Ahora"
-                                    )
-                                    onComentar(publicacion.id, nuevoComentario)
+                                    viewModel.addComment(post.id, textoComentario)
                                     textoComentario = ""
                                 }
                             },
@@ -609,7 +681,7 @@ fun TarjetaPublicacion(
 }
 
 @Composable
-fun ComentarioItem(comentario: Comentario) {
+fun ComentarioItem(comentario: ForumComment, viewModel: ForumViewModel) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -636,8 +708,9 @@ fun ComentarioItem(comentario: Comentario) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // ✅ Usar userName en lugar de user.name
                     Text(
-                        text = comentario.usuario,
+                        text = comentario.userName ?: comentario.user?.name ?: "Usuario",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = PurpleDark
@@ -650,7 +723,7 @@ fun ComentarioItem(comentario: Comentario) {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = comentario.fecha,
+                        text = viewModel.formatRelativeTime(comentario.createdAt),
                         color = TextSecondary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
@@ -658,7 +731,7 @@ fun ComentarioItem(comentario: Comentario) {
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = comentario.contenido,
+                    text = comentario.content,
                     fontSize = 14.sp,
                     color = TextPrimary,
                     lineHeight = 18.sp
@@ -668,13 +741,80 @@ fun ComentarioItem(comentario: Comentario) {
     }
 }
 
+// Función para detectar si es un post de prueba
+fun esPostDePrueba(post: Forum): Boolean {
+    // IDs de los posts de prueba (1, 2, 3, 4)
+    val idsPostsPrueba = listOf(1, 2, 3, 4)
+
+    // Títulos de los posts de prueba (como backup)
+    val titulosPostsPrueba = listOf(
+        "Mi nueva mascota",
+        "Consejos para adiestramiento",
+        "Problemas de comportamiento",
+        "Alimentación saludable"
+    )
+
+    return post.id in idsPostsPrueba ||
+            post.title in titulosPostsPrueba
+}
+
+// Función para obtener ID de recurso local según el post
+fun getImagenLocalResourceId(post: Forum): Int {
+    return when (post.id) {
+        1 -> R.drawable.foro1
+        2 -> R.drawable.foro2
+        3 -> R.drawable.foro3
+        4 -> R.drawable.foro4
+        else -> {
+            // Si no coincide por ID, intentar por título
+            when {
+                post.title.contains("nueva mascota", ignoreCase = true) -> R.drawable.foro1
+                post.title.contains("adiestramiento", ignoreCase = true) -> R.drawable.foro2
+                post.title.contains("comportamiento", ignoreCase = true) -> R.drawable.foro3
+                post.title.contains("alimentación", ignoreCase = true) -> R.drawable.foro4
+                else -> R.drawable.ic_user_placeholder // Imagen por defecto
+            }
+        }
+    }
+}
+
+// Función auxiliar para determinar si una imagen es local
+fun esImagenLocal(imagenUrl: String): Boolean {
+    return imagenUrl.contains("foro1") ||
+            imagenUrl.contains("foro2") ||
+            imagenUrl.contains("foro3") ||
+            imagenUrl.contains("foro4")
+}
+
+// Función para obtener imagen local por URL (para el diálogo de imagen ampliada)
+fun getImagenLocalResourceId(imagenUrl: String): Int {
+    return when {
+        imagenUrl.contains("foro1") -> R.drawable.foro1
+        imagenUrl.contains("foro2") -> R.drawable.foro2
+        imagenUrl.contains("foro3") -> R.drawable.foro3
+        imagenUrl.contains("foro4") -> R.drawable.foro4
+        else -> R.drawable.ic_user_placeholder
+    }
+}
+
+// Función para construir URL de imagen
+fun buildImageUrl(imagePath: String?): String? {
+    return when {
+        imagePath.isNullOrEmpty() -> null
+        imagePath.startsWith("http") -> imagePath
+        else -> "http://127.0.0.1:8000/storage/$imagePath"
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NuevaPublicacionDialog(
-    onPublicar: (Publicacion) -> Unit,
+    onPublicar: (String, String, String?, String?) -> Unit,
     onCancelar: () -> Unit
 ) {
-    var textoPublicacion by remember { mutableStateOf("") }
+    var titulo by remember { mutableStateOf("") }
+    var descripcion by remember { mutableStateOf("") }
+    var contenido by remember { mutableStateOf("") }
     var imagenUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -727,10 +867,78 @@ fun NuevaPublicacionDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Campo de texto mejorado
+                // Campo de título
                 OutlinedTextField(
-                    value = textoPublicacion,
-                    onValueChange = { textoPublicacion = it },
+                    value = titulo,
+                    onValueChange = { titulo = it },
+                    placeholder = {
+                        Text(
+                            "Título de la publicación",
+                            color = TextSecondary,
+                            fontSize = 15.sp
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        autoCorrect = true
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = BackgroundLight,
+                        focusedContainerColor = Color.White,
+                        unfocusedTextColor = TextPrimary,
+                        focusedTextColor = TextPrimary,
+                        unfocusedPlaceholderColor = TextSecondary,
+                        focusedPlaceholderColor = TextSecondary,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = PurplePrimary
+                    ),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Campo de descripción
+                OutlinedTextField(
+                    value = descripcion,
+                    onValueChange = { descripcion = it },
+                    placeholder = {
+                        Text(
+                            "Descripción breve (opcional)",
+                            color = TextSecondary,
+                            fontSize = 15.sp
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        autoCorrect = true
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = BackgroundLight,
+                        focusedContainerColor = Color.White,
+                        unfocusedTextColor = TextPrimary,
+                        focusedTextColor = TextPrimary,
+                        unfocusedPlaceholderColor = TextSecondary,
+                        focusedPlaceholderColor = TextSecondary,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = PurplePrimary
+                    ),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Campo de contenido
+                OutlinedTextField(
+                    value = contenido,
+                    onValueChange = { contenido = it },
                     placeholder = {
                         Text(
                             "¿Qué quieres compartir con la comunidad? 🐾",
@@ -740,7 +948,7 @@ fun NuevaPublicacionDialog(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(140.dp),
+                        .height(120.dp),
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
                         autoCorrect = true
@@ -871,17 +1079,16 @@ fun NuevaPublicacionDialog(
 
                     Button(
                         onClick = {
-                            if (textoPublicacion.isNotBlank()) {
-                                val nuevaPublicacion = Publicacion(
-                                    usuario = "Tú",
-                                    contenido = textoPublicacion,
-                                    imagenUri = imagenUri?.toString(),
-                                    fecha = "Ahora"
+                            if (titulo.isNotBlank() && contenido.isNotBlank()) {
+                                onPublicar(
+                                    titulo,
+                                    contenido,
+                                    if (descripcion.isNotBlank()) descripcion else null,
+                                    imagenUri?.toString()
                                 )
-                                onPublicar(nuevaPublicacion)
                             }
                         },
-                        enabled = textoPublicacion.isNotBlank(),
+                        enabled = titulo.isNotBlank() && contenido.isNotBlank(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = PurplePrimary,
                             contentColor = Color.White

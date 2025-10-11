@@ -455,7 +455,7 @@ private fun ServicesSection() {
     val services = listOf(
         ServiceItem(
             "Veterinaria 24/7",
-            R.drawable.veterinary2,
+            R.drawable.veterinary4,
             "Atención médica profesional las 24 horas del día.",
             PetPediaColors.Success
         ),
@@ -467,13 +467,13 @@ private fun ServicesSection() {
         ),
         ServiceItem(
             "Adopciones",
-            R.drawable.adopcion,
+            R.drawable.adopcion3,
             "Encuentra tu compañero perfecto y cambia una vida.",
             PetPediaColors.Secondary
         ),
         ServiceItem(
             "Productos Premium",
-            R.drawable.collarp,
+            R.drawable.pet_hotel2,
             "Alimentos, juguetes y accesorios de alta calidad.",
             PetPediaColors.Accent
         )
@@ -594,9 +594,9 @@ private fun ServiceCard(service: ServiceItem) {
 @Composable
 private fun RecommendationsSection() {
     val products = listOf(
-        Triple("Collar Inteligente", "$45.000", R.drawable.collarp),
+        Triple("Collar Inteligente", "$45.000", R.drawable.pet_hotel2),
         Triple("Kit de Aseo Premium", "$32.000", R.drawable.pet_shop),
-        Triple("Casa para Mascotas", "$120.000", R.drawable.adopcion)
+        Triple("Casa para Mascotas", "$120.000", R.drawable.adopcion3)
     )
 
     Column(modifier = Modifier.padding(16.dp)) {

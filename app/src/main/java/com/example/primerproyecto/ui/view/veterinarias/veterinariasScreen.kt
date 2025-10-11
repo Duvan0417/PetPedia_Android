@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -363,24 +364,24 @@ fun VeterinariaCard(vet: Veterinarian, onPedirCita: () -> Unit) {
                     .fillMaxWidth()
                     .height(180.dp)
             ) {
-                val imageUrl = if (vet.image.isNullOrEmpty()) {
-                    null
-                } else {
-                    if (vet.image!!.startsWith("http")) {
-                        vet.image
-                    } else {
-                        "http://127.0.0.1:8000/storage/${vet.image}"
-                    }
-                }
+                // Determinar si es veterinaria de prueba
+                val esVeterinariaDePrueba = esVeterinariaDePrueba(vet)
 
-                val painter = rememberAsyncImagePainter(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imageUrl)
-                        .crossfade(true)
-                        .build(),
-                    placeholder = painterResource(R.drawable.veterinary2),
-                    error = painterResource(R.drawable.veterinary2)
-                )
+                val painter = if (esVeterinariaDePrueba) {
+                    // Usar imagen local para veterinarias de prueba
+                    getImagenLocalParaVeterinaria(vet)
+                } else {
+                    // Usar imagen de la API para veterinarias reales
+                    val imageUrl = buildImageUrl(vet.image)
+                    rememberAsyncImagePainter(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(imageUrl)
+                            .crossfade(true)
+                            .build(),
+                        placeholder = painterResource(R.drawable.veterinary4),
+                        error = painterResource(R.drawable.veterinary4)
+                    )
+                }
 
                 Image(
                     painter = painter,
@@ -522,5 +523,52 @@ fun VeterinariaCard(vet: Veterinarian, onPedirCita: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+// Función para detectar si es una veterinaria de prueba
+fun esVeterinariaDePrueba(vet: Veterinarian): Boolean {
+    // IDs de las 4 veterinarias de prueba (ajusta según tus datos)
+    val idsVeterinariasPrueba = listOf(1, 2, 3, 4)
+
+    // Nombres de las veterinarias de prueba (como backup)
+    val nombresVeterinariasPrueba = listOf(
+        "Clínica Veterinaria Central",
+        "Hospital Animal San Francisco",
+        "Veterinaria Pet Care",
+        "Centro Médico Veterinario"
+    )
+
+    return vet.id in idsVeterinariasPrueba ||
+            vet.getClinicName() in nombresVeterinariasPrueba
+}
+
+// Función para obtener imagen local según la veterinaria
+@Composable
+fun getImagenLocalParaVeterinaria(vet: Veterinarian): Painter {
+    return when (vet.id) {
+        1 -> painterResource(R.drawable.veterinary3)
+        2 -> painterResource(R.drawable.veterinary4)
+        3 -> painterResource(R.drawable.veterinary6)
+        4 -> painterResource(R.drawable.veterinary7)
+        else -> {
+            // Si no coincide por ID, intentar por nombre
+            when {
+                vet.getClinicName().contains("Central") -> painterResource(R.drawable.veterinary3)
+                vet.getClinicName().contains("San Francisco") -> painterResource(R.drawable.veterinary4)
+                vet.getClinicName().contains("Pet Care") -> painterResource(R.drawable.veterinary6)
+                vet.getClinicName().contains("Centro Médico") -> painterResource(R.drawable.veterinary7)
+                else -> painterResource(R.drawable.veterinary4) // Imagen por defecto
+            }
+        }
+    }
+}
+
+// Función para construir URL de imagen
+fun buildImageUrl(imagePath: String?): String? {
+    return when {
+        imagePath.isNullOrEmpty() -> null
+        imagePath.startsWith("http") -> imagePath
+        else -> "http://127.0.0.1:8000/storage/$imagePath"
     }
 }

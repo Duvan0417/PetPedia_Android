@@ -1,19 +1,23 @@
+// LoginViewModel.kt - ACTUALIZADO
 package com.example.primerproyecto.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.primerproyecto.data.Apiservice.RetrofitService
 import com.example.primerproyecto.data.model.LoginRequest
 import com.example.primerproyecto.data.model.LoginResponse
+import com.example.primerproyecto.data.model.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(private val context: Context) : ViewModel() {
 
-    // Estados simples sin sealed class
+    private val sessionManager = SessionManager(context)
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -37,13 +41,34 @@ class LoginViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     val loginResponse = response.body()
                     if (loginResponse?.success == true) {
+                        // ✅ Obtener el rol del usuario SOLO desde user.role.name
+                        val userRole = loginResponse.user?.role?.name ?: "client"
+
+                        println("DEBUG: User role detected - $userRole") // Log para debug
+
                         _loginResponse.value = loginResponse
                         _errorMessage.value = null
 
-                        // Guardar el token en RetrofitService
+                        // ✅ GUARDAR EL TOKEN EN AMBOS LUGARES
                         loginResponse.token?.let { token ->
+                            // 1. Guardar en RetrofitService para solicitudes automáticas
                             RetrofitService.setAuthToken(token)
+
+                            // 2. Guardar en SessionManager para ForumViewModel
+                            sessionManager.saveAuthToken(token)
+
+                            // 3. Guardar datos del usuario
+                            loginResponse.user?.let { user ->
+                                sessionManager.saveUserData(
+                                    user.id ?: -1,
+                                    user.name ?: "",
+                                    user.email ?: ""
+                                )
+                            }
                         }
+
+                        println("DEBUG: Token guardado en SessionManager: ${sessionManager.getAuthToken()}")
+
                     } else {
                         val errorMsg = loginResponse?.message ?: "Credenciales inválidas"
                         _errorMessage.value = errorMsg
@@ -52,7 +77,6 @@ class LoginViewModel : ViewModel() {
                 } else {
                     val errorMessage = try {
                         val errorBody = response.errorBody()?.string()
-                        // Intentar parsear el JSON de error
                         if (errorBody?.contains("message") == true) {
                             val errorJson = JSONObject(errorBody)
                             errorJson.getString("message") ?: "Error en el servidor (${response.code()})"
