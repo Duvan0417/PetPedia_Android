@@ -37,6 +37,7 @@ import com.example.primerproyecto.ui.view.perfil.PerfilScreen
 import com.example.primerproyecto.ui.view.register.RegisterScreen
 import com.example.primerproyecto.ui.view.tienda.TiendaScreen
 import com.example.primerproyecto.ui.view.UserEntrenador.UserEntrenadorMainScreen
+import com.example.primerproyecto.ui.view.entrenadores.EntrenadoresScreen
 import com.example.primerproyecto.ui.view.veterinarias.VeterinariasScreen
 import com.example.primerproyecto.ui.viewmodel.OrderViewModel
 import com.example.primerproyecto.ui.viewmodel.ShoppingCartViewModel
@@ -270,7 +271,7 @@ fun ClienteApp(
                 ) {
                     when {
                         mostrarPerfil -> PerfilScreen(onBack = { mostrarPerfil = false })
-                        //mostrarEntrenadores -> EntrenadoresScreen()
+                        mostrarEntrenadores -> EntrenadoresScreen()
                         mostrarAdopciones -> AdopcionesScreen()
                         mostrarGestionarServicios -> GestionarServiciosScreen(
                             onBack = { mostrarGestionarServicios = false }
