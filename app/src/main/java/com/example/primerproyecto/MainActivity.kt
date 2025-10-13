@@ -25,11 +25,9 @@ import com.example.primerproyecto.data.Apiservice.RetrofitService
 import com.example.primerproyecto.data.model.Products
 import com.example.primerproyecto.ui.components.CarritoDialog
 import com.example.primerproyecto.ui.screens.HomeScreen
-import com.example.primerproyecto.ui.view.UserEntrenador.UserEntrenadorScreen
 import com.example.primerproyecto.ui.view.UserRefugio.UserRefugioScreen
 import com.example.primerproyecto.ui.view.UserVeterinario.UserVeterinarioScreen
 import com.example.primerproyecto.ui.view.adopciones.AdopcionesScreen
-import com.example.primerproyecto.ui.view.entrenadores.EntrenadoresScreen
 import com.example.primerproyecto.ui.view.forum.ForumScreen
 import com.example.primerproyecto.ui.view.gestionarservicios.GestionarServiciosScreen
 import com.example.primerproyecto.ui.view.login.LoginScreen
@@ -38,6 +36,7 @@ import com.example.primerproyecto.ui.view.pedidos.PedidosScreen
 import com.example.primerproyecto.ui.view.perfil.PerfilScreen
 import com.example.primerproyecto.ui.view.register.RegisterScreen
 import com.example.primerproyecto.ui.view.tienda.TiendaScreen
+import com.example.primerproyecto.ui.view.UserEntrenador.UserEntrenadorMainScreen
 import com.example.primerproyecto.ui.view.veterinarias.VeterinariasScreen
 import com.example.primerproyecto.ui.viewmodel.OrderViewModel
 import com.example.primerproyecto.ui.viewmodel.ShoppingCartViewModel
@@ -190,7 +189,7 @@ fun PetApp(
             UserVeterinarioScreen() // ✅ PARA VETERINARIOS
 
         userRole == "Entrenador" || userRole?.contains("entrenador", ignoreCase = true) == true ->
-            UserEntrenadorScreen() // ✅ PARA ENTRENADORES
+            UserEntrenadorMainScreen() // ✅ NUEVO MAIN SCREEN PARA ENTRENADORES
 
         userRole == "Refugio" || userRole?.contains("refugio", ignoreCase = true) == true ->
             UserRefugioScreen() // ✅ PARA REFUGIOS
@@ -271,7 +270,7 @@ fun ClienteApp(
                 ) {
                     when {
                         mostrarPerfil -> PerfilScreen(onBack = { mostrarPerfil = false })
-                        mostrarEntrenadores -> EntrenadoresScreen()
+                        //mostrarEntrenadores -> EntrenadoresScreen()
                         mostrarAdopciones -> AdopcionesScreen()
                         mostrarGestionarServicios -> GestionarServiciosScreen(
                             onBack = { mostrarGestionarServicios = false }

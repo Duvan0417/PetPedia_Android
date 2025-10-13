@@ -1,12 +1,15 @@
 package com.example.primerproyecto.data.Apiservice
 
 import com.example.primerproyecto.data.model.*
+import com.example.primerproyecto.model.Request
+import com.example.primerproyecto.model.Service
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.*
 
 interface RetrofitAPI {
 
@@ -76,4 +79,42 @@ interface RetrofitAPI {
         @Header("Authorization") token: String,
         @Path("forum") forumId: Int
     ): Response<ApiResponse<Unit>>
+    // 🔹 SOLICITUDES
+    @GET("requestts")
+    suspend fun getRequests(): Response<List<Request>>
+
+    @POST("requestts")
+    suspend fun createRequest(@Body request: Request): Response<Request>
+
+    @GET("requestts/{id}")
+    suspend fun getRequestById(@Path("id") id: Int): Response<Request>
+
+    @PUT("requestts/{id}")
+    suspend fun updateRequest(@Path("id") id: Int, @Body request: Request): Response<Request>
+
+    @DELETE("requestts/{id}")
+    suspend fun deleteRequest(@Path("id") id: Int): Response<Unit>
+
+    // 🔹 SERVICIOS
+    @GET("services")
+    suspend fun getServices(): Response<List<Service>>
+
+    @POST("services")
+    suspend fun createService(@Body service: Service): Response<Service>
+
+    @GET("services/{id}")
+    suspend fun getServiceById(@Path("id") id: Int): Response<Service>
+
+    @PUT("services/{id}")
+    suspend fun updateService(@Path("id") id: Int, @Body service: Service): Response<Service>
+
+    @DELETE("services/{id}")
+    suspend fun deleteService(@Path("id") id: Int): Response<Unit>
+
+    @POST("requestts/{id}/accept")
+    suspend fun acceptRequest(@Path("id") id: Int): Response<Unit>
+
+    @POST("requestts/{id}/reject")
+    suspend fun rejectRequest(@Path("id") id: Int): Response<Unit>
+
 }
