@@ -43,7 +43,7 @@ import com.example.primerproyecto.ui.viewmodel.ShoppingCartViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-// ======================= THEME =======================
+// ======================= THEME ======================
 @Composable
 fun PetAppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
