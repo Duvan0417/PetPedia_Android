@@ -56,7 +56,7 @@ fun PetAppTheme(content: @Composable () -> Unit) {
     )
 }
 
-// ======================= MAIN ACTIVITY =======================
+// ======================= MAIN ACTIVITY ======================
 class MainActivity : ComponentActivity() {
 
     // ViewModels a nivel de Activity
