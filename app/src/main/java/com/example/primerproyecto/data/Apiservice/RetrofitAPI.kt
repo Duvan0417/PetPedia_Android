@@ -19,7 +19,7 @@ interface RetrofitAPI {
 
     @POST("auth/login")
     suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
-    
+
     @GET("auth/roles")
     suspend fun getRoles(): Response<List<Role>>
 
@@ -45,13 +45,47 @@ interface RetrofitAPI {
     @GET("orderitems")
     suspend fun getOrderItems(): Response<List<OrderItems>>
 
-    // ✅ NUEVO ENDPOINT - Agregar este método
     @GET("orders/user/{userId}")
     suspend fun getOrdersByUser(@Path("userId") userId: Int): Response<List<Orders>>
 
-    // Nuevos endpoints para crear órdenes
     @POST("orders")
     suspend fun createOrder(@Body orderRequest: OrderRequest): Response<Orders>
+
+    // ✅ ENDPOINTS PARA MASCOTAS
+    @GET("pets")
+    suspend fun getPets(): Response<List<Pet>>
+
+    @GET("pets/{id}")
+    suspend fun getPetById(@Path("id") petId: Int): Response<Pet>
+
+    @POST("pets")
+    suspend fun createPet(@Body pet: Pet): Response<Pet>
+
+    @PUT("pets/{id}")
+    suspend fun updatePet(@Path("id") petId: Int, @Body pet: Pet): Response<Pet>
+
+    @DELETE("pets/{id}")
+    suspend fun deletePet(@Path("id") petId: Int): Response<Unit>
+
+    // ✅ ENDPOINTS PARA ADOPCIONES
+    @GET("adoptions/{id}")
+    suspend fun getAdoptionById(@Path("id") adoptionId: Int): Response<Adoption>
+
+    @POST("adoptions")
+    suspend fun createAdoption(@Body adoption: Adoption): Response<Adoption>
+
+    @PUT("adoptions/{id}")
+    suspend fun updateAdoption(@Path("id") adoptionId: Int, @Body adoption: Adoption): Response<Adoption>
+
+    @DELETE("adoptions/{id}")
+    suspend fun deleteAdoption(@Path("id") adoptionId: Int): Response<Unit>
+
+    // ✅ ENDPOINTS PARA REFUGIOS
+    @GET("shelters")
+    suspend fun getShelters(): Response<List<Shelter>>
+
+    @GET("shelters/{id}")
+    suspend fun getShelterById(@Path("id") shelterId: Int): Response<Shelter>
 
     // PÚBLICAS - no requieren token
     @GET("forums")
@@ -79,6 +113,7 @@ interface RetrofitAPI {
         @Header("Authorization") token: String,
         @Path("forum") forumId: Int
     ): Response<ApiResponse<Unit>>
+
     // 🔹 SOLICITUDES
     @GET("requestts")
     suspend fun getRequests(): Response<List<Request>>
@@ -117,4 +152,9 @@ interface RetrofitAPI {
     @POST("requestts/{id}/reject")
     suspend fun rejectRequest(@Path("id") id: Int): Response<Unit>
 
+    @GET("services/trainer/{trainerId}")
+    suspend fun getServicesByTrainer(@Path("trainerId") trainerId: Int): Response<List<Service>>
+
+    @GET("requestts/trainer/{trainerId}")
+    suspend fun getRequestsByTrainer(@Path("trainerId") trainerId: Int): Response<List<Request>>
 }

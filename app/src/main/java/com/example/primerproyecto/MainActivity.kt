@@ -190,10 +190,10 @@ fun PetApp(
             UserVeterinarioScreen() // ✅ PARA VETERINARIOS
 
         userRole == "Entrenador" || userRole?.contains("entrenador", ignoreCase = true) == true ->
-            UserEntrenadorMainScreen() // ✅ NUEVO MAIN SCREEN PARA ENTRENADORES
+            UserEntrenadorMainScreen(currentUserId = currentUserId) // ✅ NUEVO MAIN SCREEN PARA ENTRENADORES
 
         userRole == "Refugio" || userRole?.contains("refugio", ignoreCase = true) == true ->
-            UserRefugioScreen() // ✅ PARA REFUGIOS
+            UserRefugioScreen(userId = currentUserId) // ✅ PARA REFUGIOS
 
         else -> ClienteApp(
             currentUserId = currentUserId,

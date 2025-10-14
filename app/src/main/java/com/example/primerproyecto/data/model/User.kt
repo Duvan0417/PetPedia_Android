@@ -42,34 +42,3 @@ data class User(
     val updatedAt: String? = null
 )
 
-data class Shelter(
-    @SerializedName("id")
-    val id: Int,
-
-    @SerializedName("user_id")
-    val userId: Int,
-
-    @SerializedName("shelter_name")
-    val shelterName: String,
-
-    @SerializedName("responsible_person")
-    val responsiblePerson: String,
-
-    @SerializedName("capacity")
-    val capacity: Int,
-
-    @SerializedName("rating")
-    val rating: Double? = 0.0,
-
-    @SerializedName("review_count")
-    val reviewCount: Int? = 0,
-
-    @SerializedName("image")
-    val image: String?,
-
-    @SerializedName("created_at")
-    val createdAt: String? = null,
-
-    @SerializedName("updated_at")
-    val updatedAt: String? = null
-)

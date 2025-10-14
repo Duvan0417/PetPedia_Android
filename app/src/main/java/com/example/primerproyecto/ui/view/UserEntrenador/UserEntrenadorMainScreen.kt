@@ -10,7 +10,7 @@ import com.example.primerproyecto.ui.view.UserEntrenador.UserEntrenadorConfigura
 import com.example.primerproyecto.ui.view.UserEntrenador.UserEntrenadorSolicitudesScreen
 
 @Composable
-fun UserEntrenadorMainScreen() {
+fun UserEntrenadorMainScreen(currentUserId: Int) {
     var selectedItem by remember { mutableStateOf(0) }
     val items = listOf("Solicitudes", "Servicios", "Configuración")
 
@@ -35,8 +35,8 @@ fun UserEntrenadorMainScreen() {
         }
     ) { innerPadding ->
         when (selectedItem) {
-            0 -> UserEntrenadorSolicitudesScreen(modifier = Modifier.padding(innerPadding))
-            1 -> UserEntrenadorServiciosScreen(modifier = Modifier.padding(innerPadding))
+            0 -> UserEntrenadorSolicitudesScreen(userId = currentUserId, modifier = Modifier.padding(innerPadding))
+            1 -> UserEntrenadorServiciosScreen(userId = currentUserId, modifier = Modifier.padding(innerPadding))
             2 -> UserEntrenadorConfiguracionScreen(modifier = Modifier.padding(innerPadding))
         }
     }
