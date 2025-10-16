@@ -24,19 +24,18 @@ fun MasOpcionesScreen(
     onNavigateToGestionarServicios: () -> Unit,
     onNavigateToForo: () -> Unit,
     onNavigateToPedidos: () -> Unit,
-
-
+    onNavigateToSolicitudes: () -> Unit,
+    onNavigateToConfiguracion: () -> Unit
 ) {
     val opciones = listOf(
         "Perfil" to Icons.Default.Person,
+        "Solicitudes" to Icons.Default.MarkEmailUnread,
         "Entrenadores" to Icons.Default.FitnessCenter,
         "Adopciones" to Icons.Default.Pets,
-        "Configuración" to Icons.Default.Settings,
         "Pedidos" to Icons.Default.Receipt,
+        "Gestionar Servicios" to Icons.Default.Build,
         "Foro" to Icons.Default.Forum,
-        "Solicitudes" to Icons.Default.MarkEmailUnread,
-        "Gestionar Servicios" to Icons.Default.Build
-
+        "Configuración" to Icons.Default.Settings
     )
 
     Column(
@@ -66,11 +65,13 @@ fun MasOpcionesScreen(
                 onClick = {
                     when (titulo) {
                         "Perfil" -> onNavigateToPerfil()
+                        "Solicitudes" -> onNavigateToSolicitudes()
                         "Entrenadores" -> onNavigateToEntrenadores()
                         "Adopciones" -> onNavigateToAdopciones()
                         "Gestionar Servicios" -> onNavigateToGestionarServicios()
                         "Foro" -> onNavigateToForo()
                         "Pedidos" -> onNavigateToPedidos()
+                        "Configuración" -> onNavigateToConfiguracion()
                     }
                 }
             ) {

@@ -1,15 +1,19 @@
 package com.example.primerproyecto.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.primerproyecto.data.Apiservice.RetrofitService
+import com.example.primerproyecto.data.model.SessionManager
 import com.example.primerproyecto.data.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class SessionViewModel : ViewModel() {
+class SessionViewModel(private val context: Context) : ViewModel() {
+
+    private val sessionManager = SessionManager(context)
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
@@ -41,10 +45,12 @@ class SessionViewModel : ViewModel() {
         _currentUser.value = user
     }
 
-    // Cerrar sesión
+    // ✅ Cerrar sesión - LIMPIA TODO
     fun logout() {
         _currentUser.value = null
         RetrofitService.setAuthToken(null)
+        sessionManager.clearSession() // ✅ Limpia las SharedPreferences
+        println("DEBUG: SessionViewModel - Sesión limpiada")
     }
 
     // Obtener rol actual
@@ -56,5 +62,10 @@ class SessionViewModel : ViewModel() {
             4 -> "Refugio"
             else -> "Cliente"
         }
+    }
+
+    // Verificar si hay sesión guardada
+    fun hasActiveSession(): Boolean {
+        return sessionManager.getAuthToken() != null
     }
 }
